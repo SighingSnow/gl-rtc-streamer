@@ -3,9 +3,10 @@ Pixel Streaming
 The proj is based on cloud rendering.(云渲染)
 
 ### 1 Set Up 
-Please make sure ffmpeg is installed first. 
-CentOS and macos is recommended.
+For the detailed enviroment setup, please refer to [setup.md](./docs/setup.md).
+Ubuntu and macos is recommended.
 And please note that the server file is from libdatachannel repo.
+
 ```shell
 git submodule update --init --recursive
 cmake -B cmake-build-debug
@@ -18,7 +19,7 @@ cd server
 python3 signaling-server.py
 python3 -m http.server --bind 127.0.0.1 8080
 ```
-then just run the program, and open http://127.0.0.1:8080/, and press start.
+then just run the program `./ors`, and open http://127.0.0.1:8080/ in your browser, and press start button.
 
 ### 2 Funcs
 
@@ -30,7 +31,6 @@ Lots of work still need to be done.
 - [ ] HEVC
 - [x] Multi-thread
 - [ ] Parallel 
-- [ ] Integrate with Irrlicht Game Engine.
 
 ### 3 Next Steps
 2021.11.8

@@ -6,8 +6,8 @@
 #define SCENE_H
 
 #include "common.h"
-#include "camera.h"
-#include "shader.h"
+#include "Camera.h"
+#include "Shader.h"
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <ft2build.h>
