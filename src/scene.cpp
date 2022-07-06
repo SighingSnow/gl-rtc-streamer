@@ -23,7 +23,7 @@ Scene::Scene()
     VAO = 0;
     VBO = 0;
     shader = nullptr;
-    camera = new Camera(glm::vec3(0.0f,0.0f,30.0f));
+    camera = new Camera(glm::vec3(0.0f,0.0f,3.0f));
     lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
     prev_time = 0.0;
     frame_count = 0;
@@ -129,6 +129,20 @@ void Scene::DrawScene()
 {
     int fps;
     int width = 0,height = 0;
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     glfwGetWindowSize(window,&width,&height);
     time_t now = time(NULL);
     while (!glfwWindowShouldClose(window))
@@ -152,27 +166,38 @@ void Scene::DrawScene()
 
         // render
         // ------
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
         //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // be sure to activate shader when setting uniforms/drawing objects
         shader->use();
         // view/projection transformations
+        // be sure to activate shader when setting uniforms/drawing objects
+        shader->setVec3("objectColor", 0.3, 0.6, 0.8);
+        shader->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        shader->setVec3("lightPos", lightPos);
+        shader->setVec3("viewPos", camera->Position);
+
+        // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera->GetViewMatrix();
         shader->setMat4("projection", projection);
         shader->setMat4("view", view);
 
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::scale(model,glm::vec3(0.2));
-        shader->setMat4("model", model);
-        shader->setVec4("inputColor",glm::vec4(1.0));
         // render the cube
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        
+        for(uint32_t i = 0;i < 10;i++){
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::scale(model,glm::vec3(0.1f));
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 30.0f*i;
+            model = glm::rotate(model,glm::radians(angle),glm::vec3(1.0f, 0.3f, 0.5f));
+            shader->setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        
         textShader->use();
         glm::mat4 tproj = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
         textShader->setMat4("projection",tproj);
