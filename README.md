@@ -3,7 +3,7 @@ Pixel Streaming
 The proj is based on cloud rendering.(云渲染)
 
 ### 1 Set Up 
-For the detailed enviroment setup, please refer to [setup.md](./docs/setup.md).
+For the detailed enviroment setup, please refer to [SETUP.md](./docs/SETUP.md).
 Ubuntu and macos is recommended.
 And please note that the server file is from libdatachannel repo.
 
