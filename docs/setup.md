@@ -12,7 +12,7 @@ sudo apt install libfreetype6-dev libavcodec-dev libavformat-dev libswscale-dev 
 Switch to docker branch first.
 ```shell
 docker build -t ors-image
-docker run --rm -p 8080:8080 -p 8000:8000/udp ors-image ./build/ors
+docker run --rm --name my-ors -p 8080:8080 -p 8000:8000/udp ors-image xvfb-run ./ors
 ```
 
 ### 4 Windows
