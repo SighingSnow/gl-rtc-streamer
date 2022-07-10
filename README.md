@@ -1,4 +1,4 @@
-Pixel Streaming
+## Opengl-webrtc-streamer
 
 The proj is based on cloud rendering.(云渲染)
 
@@ -28,14 +28,12 @@ Lots of work still need to be done.
 - [x] Record OpenGL app screen and encode to H.264
 - [x] Rtmp Streamer, which can push the H.264 raw frame in buffer to server
 - [x] Webrtc
-- [ ] HEVC
-- [x] Multi-thread
-- [ ] Parallel 
+- [ ] Terminal controls transfer to server
 
 ### 3 Next Steps
-2021.11.8
 - [x] Use librtc(libdatachannel is the origin name) to send memory video.
-- [ ] Implement with HEVC
+- [ ] Enable browser control.
+- [ ] Integrate with webgl rendering.
 
 **Please note: the repo's license is MIT, but the 3rd_party/librtc is GPL.**
 

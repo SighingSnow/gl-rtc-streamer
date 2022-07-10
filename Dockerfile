@@ -13,7 +13,7 @@ COPY . /app
 WORKDIR /app
 
 # Build and make ors
-RUN rm -r build && cmake clean . && cmake -B build && cd build && make -j${JOBS} 
+RUN rm -rf build && cmake clean . && cmake -B build && cd build && make -j${JOBS} 
 
 # Update work dir
 WORKDIR build
