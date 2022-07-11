@@ -19,6 +19,7 @@ Encoder::Encoder(){
     frame_count = 0;
 }
 
+// Init ffmpeg encoder
 void Encoder::Init()
 {
     av_register_all();
@@ -203,6 +204,9 @@ void Encoder::EndEncode()
     sws_freeContext(swsContext);
     fclose(fout);
 }
+
+// Below are funcs help to debug, not necessary
+
 // the buf is up-down reversed
 void Encoder::rgb24toppm(uint8_t *buf, int width, int height)
 {
