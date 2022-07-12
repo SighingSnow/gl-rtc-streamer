@@ -205,3 +205,36 @@ websocket.onmessage = async function (evt) {
         await handleOffer(object)
     }
 }
+
+// Below code is for render video in canvas, canvas can also display webgl
+// But we got a low quality render
+var video = document.getElementById('video')
+var canvas = document.getElementById('canvas')
+var scale = window.devicePixelRatio
+video.addEventListener('play', () => {
+  function step() {
+    canvas.width = video.getBoundingClientRect().width;
+    canvas.height = video.getBoundingClientRect().height;
+    canvas.style.width = canvas.width+"px"
+    canvas.style.height = canvas.height+"px"
+    canvas.width = Math.floor(canvas.width*scale)
+    canvas.height = Math.floor(canvas.height*scale)
+    var ctx = canvas.getContext("2d");
+    //ctx.scale(scale,scale)
+    //ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step);
+})
+
+// Below code is capture mouse
+// var video = document.getElementById('video')
+// video.addEventListener('keypress',(e)=> {
+//     console.log("world")
+//     console.log(e)
+// })
+// video.addEventListener('playing',(e)=>{
+//     console.log("hello")
+//     video.focus()
+// });
