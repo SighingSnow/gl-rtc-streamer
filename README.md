@@ -15,7 +15,7 @@ make
 ```
 before running the program, please make sure the server is set up. 
 ```shell
-cd server
+cd client
 python3 signaling-server.py
 python3 -m http.server --bind 127.0.0.1 8080
 ```
