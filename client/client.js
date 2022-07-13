@@ -207,16 +207,30 @@ websocket.onmessage = async function (evt) {
     }
 }
 
+var video_playing = false
+
 window.addEventListener('keydown',(e)=>{
-    console.log(typeof(e.key))
-    console.log(e.key)
+    if(!video_playing) return;
     websocket.send(JSON.stringify({
         id:"server",
         type:"keyboard_op",
         op:e.key
     }));
-})
+});
 
+window.addEventListener('mousemove',(e)=>{
+    if(!video_playing) return;
+    websocket.send(JSON.stringify({
+        id:"server",
+        type:"mouse_move_op",
+        x:e.clientX,
+        y:e.clientY
+    }));
+});
+
+video.addEventListener('play',()=>{
+    video_playing = true
+})
 // Below code is for render video in canvas, canvas can also display webgl
 // It's for future use, if we wants to combine local and remote render
 // var video = document.getElementById('video')

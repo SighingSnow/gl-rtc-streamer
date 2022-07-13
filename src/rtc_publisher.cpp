@@ -3,7 +3,7 @@
 //
 
 #include "rtc_publisher.h"
-
+#include<iostream>
 void RtcPublisher::setUp()
 {
     Configuration* config = &rtc_config;
@@ -334,5 +334,13 @@ void RtcPublisher::processClientKeyboard(json message)
 
 void RtcPublisher::processClientMouseMove(json message)
 {
+    auto xit = message.find("x");
+    auto yit = message.find("y");
+    if(xit==message.end() || yit==message.end()){
+        return;
+    }
+    double x = (double)*xit;
+    double y = (double)*yit;
+    (*mouseMoveCallback)(x,y);
     return;
 }
