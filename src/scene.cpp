@@ -331,6 +331,35 @@ void Scene::renderText(std::string text,GLfloat x, GLfloat y, GLfloat scale, glm
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Scene::clientKeyboardCallback(char c)
+{
+    switch(c){
+        case 'w':this->get_camera()->ProcessKeyboard(FORWARD,deltaTime); break;
+        case 's':this->get_camera()->ProcessKeyboard(BACKWARD,deltaTime); break;
+        case 'a':this->get_camera()->ProcessKeyboard(LEFT,deltaTime); break;
+        case 'd':this->get_camera()->ProcessKeyboard(RIGHT,deltaTime); break;
+        default: break;
+    }
+}
+
+void Scene::clientMouseMoveCallback(double x,double y)
+{
+    if (firstMouse)
+    {
+        lastX = x;
+        lastY = y;
+        firstMouse = false;
+    }
+
+    float xoffset = x - lastX;
+    float yoffset = lastY - y; // reversed since y-coordinates go from bottom to top
+
+    lastX = x;
+    lastY = y;
+
+    this->get_camera()->ProcessMouseMovement(xoffset, yoffset);
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)

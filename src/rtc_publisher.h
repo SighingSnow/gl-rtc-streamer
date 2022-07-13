@@ -9,7 +9,6 @@
 #include "common.h"
 #include "h264fileparser.hpp"
 #include "helpers.hpp"
-
 using namespace rtc;
 using namespace std;
 using namespace std::chrono_literals;
@@ -33,6 +32,9 @@ public:
         pc->close();
         ws->close();
     }
+public:
+    void setInputCallBack(std::function<void(char)>* func_keyboard,
+    std::function<void(double,double)>* func_mouse_move);
 protected:
     Configuration rtc_config;
     shared_ptr<WebSocket> ws;
@@ -63,6 +65,11 @@ protected:
 
 
     void sendInitialNalus(shared_ptr<Stream> stream, shared_ptr<ClientTrackData> video);
+private:
+    std::function<void(char)> *keyboardCallback = nullptr;
+    std::function<void(double,double)> *mouseMoveCallback = nullptr;
+    void processClientKeyboard(json message);
+    void processClientMouseMove(json message);
 };
 
 #endif //RTC_PUBLISHER_H

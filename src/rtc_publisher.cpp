@@ -15,11 +15,11 @@ void RtcPublisher::setUp()
     string localId = "server";
     cout << "The local ID is: " << localId << endl;
     // ws = make_shared<WebSocket>();
-    ws->onOpen([]() { cout << "WebSocket connected, signaling ready" << endl; });
+    ws->onOpen([]() { cout << "[WebSocket]WebSocket connected, signaling ready" << endl; });
 
-    ws->onClosed([]() { cout << "WebSocket closed" << endl; });
+    ws->onClosed([]() { cout << "[WebSocket]WebSocket closed" << endl; });
 
-    ws->onError([](const string &error) { cout << "WebSocket failed: " << error << endl; });
+    ws->onError([](const string &error) { cout << "[WebSocket]WebSocket failed: " << error << endl; });
 
     ws->onMessage([&](variant<binary, string> data) {
         if (!holds_alternative<string>(data))
@@ -42,7 +42,7 @@ void RtcPublisher::setUp()
     }
 
     //cout<<"Cleaning up..."<<endl;
-    cout<<"websocket setup"<<endl;
+    cout<<"[WebSocket] WebSocket setup"<<endl;
     return;
 }
 
@@ -86,7 +86,7 @@ shared_ptr<Client> RtcPublisher::createPeerConnection(const Configuration &confi
 
     pc->onGatheringStateChange(
             [this,wpc = make_weak_ptr(pc), id, wws](PeerConnection::GatheringState state) {
-                cout << "Gathering State: " << state << endl;
+                cout << "[PeerConnection]Gathering State: " << state << endl;
                 if (state == PeerConnection::GatheringState::Complete) {
                     if(auto pc = wpc.lock()) {
                         auto description = pc->localDescription();
@@ -120,7 +120,7 @@ shared_ptr<Client> RtcPublisher::createPeerConnection(const Configuration &confi
     });
 
     dc->onMessage(nullptr, [id, wdc = make_weak_ptr(dc)](string msg) {
-        cout << "Message from " << id << " received: " << msg << endl;
+        cout << "[DataChannel] Message from " << id << " received: " << msg << endl;
         if (auto dc = wdc.lock()) {
             dc->send("Ping");
         }
@@ -171,7 +171,7 @@ shared_ptr<Stream> RtcPublisher::createStream(const unsigned int fps) {
                 if (rtpConfig->timestampToSeconds(reportElapsedTimestamp) > 1) {
                     trackData->sender->setNeedsToReport();
                 }
-                cout << "Sending " << streamType << " sample with size: " << to_string(sample.size()) << " to " << client << endl;
+                //cout << "Sending " << streamType << " sample with size: " << to_string(sample.size()) << " to " << client << endl;
                 bool send = false;
                 try {
                     // send sample
@@ -243,8 +243,9 @@ void RtcPublisher::startStream() {
 }
 void RtcPublisher::wsOnMessage(json message,Configuration config, shared_ptr<WebSocket> ws ) {
     auto it = message.find("id");
-    if (it == message.end())
+    if (it == message.end()){
         return;
+    }
     string id = it->get<string>();
     it = message.find("type");
     if (it == message.end())
@@ -262,7 +263,10 @@ void RtcPublisher::wsOnMessage(json message,Configuration config, shared_ptr<Web
             auto description = Description(sdp, type);
             pc->setRemoteDescription(description);
         }
-    }
+    } else if(type == "keyboard_op" || type == "mouse_move_op"){
+        if(type == "keyboard_op") processClientKeyboard(message);
+        else if(type == "mouse_move_op") processClientMouseMove(message);
+    } 
 }
 shared_ptr<ClientTrackData> RtcPublisher::addVideo(const shared_ptr<PeerConnection> pc, const uint8_t payloadType,
                                      const uint32_t ssrc, const string cname, const string msid,
@@ -307,4 +311,28 @@ void RtcPublisher::sendInitialNalus(shared_ptr<Stream> stream, shared_ptr<Client
         // Send initial NAL units again to start stream in firefox browser
         video->track->send(initialNalus);
     }
+}
+
+void RtcPublisher::setInputCallBack(std::function<void(char)>* func_keyboard,
+    std::function<void(double,double)>* func_mouse_move)
+{
+    keyboardCallback = func_keyboard;
+    mouseMoveCallback = func_mouse_move;
+}
+
+void RtcPublisher::processClientKeyboard(json message)
+{
+    auto it = message.find("op");
+    if(it==message.end()){
+        return;
+    }
+    string str = *it;
+    char c = str[0];
+    (*keyboardCallback)(c);
+    return;
+}
+
+void RtcPublisher::processClientMouseMove(json message)
+{
+    return;
 }

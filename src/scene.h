@@ -49,6 +49,9 @@ private:
     Camera* camera;
     glm::vec3 lightPos;
     std::map<GLchar, Character> Characters;
+public:
+    void clientKeyboardCallback(char c);
+    void clientMouseMoveCallback(double x,double y);
 };
 
 
