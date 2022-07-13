@@ -16,6 +16,7 @@ class Scene;
 
 using json = nlohmann::json;
 
+// TODO: Refact Streamer to Ors
 class Streamer {
 public:
     Streamer(Scene & scene);
@@ -32,6 +33,9 @@ private:
     void initRtmp();
     void rtmpPublish(uint8_t* buf,int size);
     void rtcPublish(uint8_t* buf,int size);
+private:
+    std::function<void(char)> func_keyboard;
+    std::function<void(double,double)> func_mousemove;
 };
 
 
