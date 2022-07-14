@@ -28,11 +28,11 @@ Lots of work still need to be done.
 - [x] Record OpenGL app screen and encode to H.264
 - [x] Rtmp Streamer, which can push the H.264 raw frame in buffer to server
 - [x] Webrtc
-- [ ] Terminal controls transfer to server
+- [x] Terminal controls transfer to server
 
 ### 3 Next Steps
 - [x] Use librtc(libdatachannel is the origin name) to send memory video.
-- [ ] Enable browser control.
+- [x] Enable browser control.
 - [ ] Integrate with webgl rendering.
 
 **Please note: the repo's license is MIT, but the 3rd_party/librtc is GPL.**
