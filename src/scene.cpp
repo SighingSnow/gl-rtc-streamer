@@ -4,8 +4,8 @@
 
 #include "scene.h"
 
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = screen_width / 2.0f;
+float lastY = screen_height / 2.0f;
 bool firstMouse = true;
 
 // timing
@@ -22,9 +22,9 @@ Scene::Scene()
     window = nullptr;
     VAO = 0;
     VBO = 0;
-    shader = nullptr;
-    camera = new Camera(glm::vec3(0.0f,0.0f,30.0f));
-    lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+    mShader = nullptr;
+    camera = new Camera(glm::vec3(0.2f,1.05f,4.0f));
+    lightPos = glm::vec3(1.0f, 2.0f, 1.0f);
     prev_time = 0.0;
     frame_count = 0;
     delta_t = 0.0;
@@ -65,34 +65,27 @@ void Scene::SetUpEnv()
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
+    
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
     }
-
-    // configure global opengl state
-    // -----------------------------
-    glEnable(GL_DEPTH_TEST);
 
 }
 
 void Scene::SetObjs()
 {
     // Compile shaders
-    shader = new Shader(vs,fs);
-    textShader = new Shader("../src/Shaders/text.vs","../src/Shaders/text.fs");
+    //lightShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
+	cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
+    mShader = new Shader(mcube_vs.c_str(),mcube_fs.c_str());
+    textShader = new Shader(text_vs.c_str(),text_fs.c_str());
     // Bind buffer
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     glBindVertexArray(VAO);
-
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -100,6 +93,14 @@ void Scene::SetObjs()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
     loadFonts();
     // This is for the text
     glGenVertexArrays(1, &tVAO);
@@ -111,6 +112,14 @@ void Scene::SetObjs()
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+}
+
+void Scene::initScene()
+{
+    initBackground();
+    initGround();
+    initTrees();
 }
 
 void Scene::SetCallback()
@@ -130,21 +139,14 @@ void Scene::DrawScene()
     int fps;
     int width = 0,height = 0;
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+    glEnable(GL_DEPTH_TEST);
 
     glfwGetWindowSize(window,&width,&height);
+    
     time_t now = time(NULL);
+
+    initScene();
+
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -166,57 +168,212 @@ void Scene::DrawScene()
 
         // render
         // ------
-        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-        //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // be sure to activate shader when setting uniforms/drawing objects
-        shader->use();
-        // view/projection transformations
-        // be sure to activate shader when setting uniforms/drawing objects
-        shader->setVec3("objectColor", 0.3, 0.6, 0.8);
-        shader->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        shader->setVec3("lightPos", lightPos);
-        shader->setVec3("viewPos", camera->Position);
+        generalTransform(); // perspective and view matrix
+        renderScene();
+        renderTime();
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera->GetViewMatrix();
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", view);
-
-        // render the cube
-        glBindVertexArray(VAO);
-        
-        for(uint32_t i = 0;i < 10;i++){
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::scale(model,glm::vec3(0.1f));
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 30.0f*i;
-            model = glm::rotate(model,glm::radians(angle),glm::vec3(1.0f, 0.3f, 0.5f));
-            shader->setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-        
-        textShader->use();
-        glm::mat4 tproj = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
-        textShader->setMat4("projection",tproj);
-        auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-        std::string ms_text = std::to_string(ms.count());
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        renderText(ms_text,25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
-        glDisable(GL_BLEND);
+        // Read buffer
         GLubyte buf[SCR_WIDTH*SCR_HEIGHT*3] = {0};
         glReadPixels(0,0,SCR_WIDTH,SCR_HEIGHT,GL_RGB,GL_UNSIGNED_BYTE,buf);
         Notify(buf);
         memset(buf,0,SCR_WIDTH*SCR_HEIGHT*3);
+        
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    //free(buf);
+}
+
+void Scene::generalTransform()
+{
+    mShader->use();
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)screen_width / (float)screen_height, 0.1f, 400.0f);
+    glm::mat4 view = camera->GetViewMatrix();
+    mShader->setMat4("projection", projection);
+    mShader->setMat4("view", view);
+}
+
+void Scene::initBackground()
+{
+    glm::vec3 lightColor = glm::vec3(1,0.8,0.6);
+	glm::vec3 diffuseColor = lightColor * glm::vec3(0.8f);
+	glm::vec3 ambientColor = diffuseColor * glm::vec3(1.0f);
+
+    mShader->use();
+    mShader->setVec3("lightPos",lightPos);
+    mShader->setVec3("viewPos", camera->Position);
+
+    mShader->setVec3("light.ambient",ambientColor);
+	mShader->setVec3("light.diffuse",diffuseColor);
+	mShader->setVec3("light.specular",1.0f,1.0f,1.0f);
+    mShader->setVec3("lightColor", 1.0f, 0.8f, 0.6f);
+    
+}
+
+void Scene::initGround()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0,1.0);
+    ground_cubes = vector<MCube>(3);
+
+    glm::vec3 color_noise = glm::vec3(0.1f);
+    double i = 0.0;
+    for(auto & gc:ground_cubes){
+        gc.scale_ = glm::vec3(20,1.0f,20.0f);
+        gc.pos_ = glm::vec3(0.0f*i,-i*voxel_size*gc.scale_[1],0.0f);
+        gc.color_ = glm::vec3(0.6-i*0.1)*glm::vec3(1.0f,0.8f,0.6f) + 
+            color_noise*glm::vec3(dis(gen));
+        gc.angle_ = 60.0;
+        gc.rotate_axis = glm::vec3(0.0,1.0,0.0);
+        i = i+1;
+    }
+}
+
+void Scene::initTrees()
+{  
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0,1.0);
+    uniform_real_distribution<> bdis(1.0,1.2);
+    uniform_real_distribution<> pos_dis(-0.04,0.04); 
+    // init tree size;
+    trees = std::vector<MTree>(tree_num);
+    auto initBranch = [&](MTree& mtree){
+        double index = 0;
+        glm::vec3 pos = mtree.pos_;
+        int one_b_height = bdis(gen);
+        std::vector<MCube>& b = mtree.branch_;
+        for(MCube & mc: b){
+            mc.scale_ = glm::vec3(0.4f,one_b_height,0.4f);
+            mc.pos_ = glm::vec3(pos[0],
+                pos[1]+index*voxel_size*mc.scale_[1],
+                pos[2]);
+            mc.color_ = glm::vec3(0.9);
+            mc.angle_ = 0.0f;
+            mc.rotate_axis = glm::vec3(0.0); 
+            index = index+1;
+        }
+        mtree.theight = 3*one_b_height*voxel_size;
+    };
+    
+    auto initLeaves = [&](glm::vec3 pos,double height,int radius,std::vector<MCube>& leaves){
+        double h,d,prob,r;
+        MCube leaf;
+        for(double i = -radius;i <= radius;i+=1){
+            for(double j = -radius;j <= radius;j+=1){
+                for(double k = -radius;k <= radius;k+=1){
+                    glm::vec3 f = glm::vec3(i/radius,j/radius,k/radius);
+                    h = 0.5 - std::max(double(f[1]),-0.5) * 0.5;
+                    d = sqrt(std::pow(f[0],2)+pow(f[2],2));
+                    prob = std::pow(std::max(0.0,double(1-d)),2) * h;
+                    prob += sin(f[0] * 5 + pos[0]) * 0.02;
+                    prob += sin(f[1] * 9 + pos[1]) * 0.01;
+                    prob += sin(f[2] * 10 + pos[2]) * 0.03;
+                    prob = prob < 0.1 ? 0.0:prob;
+                    r = dis(gen);
+                    if(r < prob){
+                        leaf.pos_ = pos + glm::vec3(i/radius/60.0,height+j/radius/100.0,k/radius/60.0);
+                        leaf.scale_ = glm::vec3(0.1,0.1,0.1);
+                        leaf.color_ = glm::vec3(1.0, 0.4, 0.1);
+                        leaves.emplace_back(leaf);
+                    }
+                }
+            }
+        }
+    };
+
+    for(auto& t:trees){
+        t.pos_ = glm::vec3(0.0,0.01,0.0);
+        t.pos_[0] = pos_dis(gen);
+        t.pos_[2] = pos_dis(gen);
+        t.branch_ = std::vector<MCube>(3);
+        // tmp
+        t.radius = 22;
+        initBranch(t);
+        initLeaves(t.pos_,t.theight,t.radius,t.leaves_);
+    }
+    return;
+}
+
+void Scene::renderScene()
+{
+    renderGround();
+    renderTree();
+}
+void Scene::renderGround()
+{
+    for(auto& gc:ground_cubes){
+        renderCube(gc.pos_,gc.scale_,gc.color_,
+            gc.angle_,gc.rotate_axis);
+    }
+}
+
+void Scene::renderTree()
+{
+    for(MTree & t : trees) {
+        for(MCube & m: t.branch_) {
+            renderCube(m.pos_,m.scale_,m.color_);
+        }
+        for(MCube & m: t.leaves_) {
+            renderCube(m.pos_,m.scale_,m.color_);
+        }
+    }
+}
+
+void Scene::renderCube(glm::vec3 pos,glm::vec3 scale,glm::vec3 color,
+    double angle ,glm::vec3 rotate_axis
+    )
+{
+    mShader->use();
+    mShader->setVec3("material.ambient", color);
+    mShader->setVec3("material.diffuse", color);
+    mShader->setVec3("material.specular", 0.4f, 0.4f, 0.4f); 
+    mShader->setFloat("material.shininess", 20.0f);
+    // transfom
+    glm::mat4 model = glm::mat4(1.0);
+    model = glm::translate(model,pos);
+    //model = glm::rotate(model,glm::radians(-120.0f),rotate_axis);
+    model = glm::scale(model,scale*glm::vec3(voxel_size));
+
+    mShader->setMat4("model",model);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES,0,36);
+    return;
+}
+
+void Scene::renderLight()
+{
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 view = camera->GetViewMatrix();
+        
+    cShader->use();
+    cShader->setMat4("projection", projection);
+    cShader->setMat4("view", view);
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(voxel_size*10)); // a smaller cube
+    cShader->setMat4("model", model);
+
+    glBindVertexArray(lightCubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void Scene::renderTime()
+{
+    textShader->use();
+    glm::mat4 tproj = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
+    textShader->setMat4("projection",tproj);
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    std::string ms_text = std::to_string(ms.count());
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    renderText(ms_text,25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+    glDisable(GL_BLEND);
 }
 
 void Scene::Notify(uint8_t* buf) {

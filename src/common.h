@@ -34,8 +34,12 @@ const int inlinesize[2] = {SCR_WIDTH*3,0}; // For sws_scale convert function
 static const char* rtmp_fout_name = "rtsp://localhost/livestream/live";
 
 // OpenGL parameters
-static const char* vs = "../src/Shaders/Cube.vs";
-static char* fs = "../src/Shaders/Cube.fs";
+const std::string cube_vs = "../src/Shaders/cube.vs";
+const std::string cube_fs = "../src/Shaders/cube.fs";
+const std::string mcube_vs = "../src/Shaders/mcube.vs";
+const std::string mcube_fs = "../src/Shaders/mcube.fs";
+const std::string text_vs = "../src/Shaders/text.vs";
+const std::string text_fs = "../src/Shaders/text.fs";
 
 const float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
