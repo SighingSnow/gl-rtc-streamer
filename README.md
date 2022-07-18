@@ -2,6 +2,8 @@
 
 The proj is based on cloud rendering.(云渲染)
 
+![](./docs/demo.gif)
+
 ### 1 Set Up 
 For the detailed enviroment setup, please refer to [SETUP.md](./docs/SETUP.md).
 Ubuntu and macos is recommended.
@@ -34,6 +36,7 @@ Lots of work still need to be done.
 - [x] Use librtc(libdatachannel is the origin name) to send memory video.
 - [x] Enable browser control.
 - [ ] Integrate with webgl rendering.
+- [ ] Accelerate encode.
 
 **Please note: the repo's license is MIT, but the 3rd_party/librtc is GPL.**
 
