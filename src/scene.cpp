@@ -23,7 +23,7 @@ Scene::Scene()
     VAO = 0;
     VBO = 0;
     mShader = nullptr;
-    camera = new Camera(glm::vec3(0.2f,1.05f,4.0f));
+    camera = new Camera(glm::vec3(1.0,2.18f,8.91f));
     lightPos = glm::vec3(1.0f, 2.0f, 1.0f);
     prev_time = 0.0;
     frame_count = 0;
@@ -168,12 +168,12 @@ void Scene::DrawScene()
 
         // render
         // ------
-        glClearColor(0.5f, 0.5f, 0.4f, 1.0f);
+        glClearColor(0.8f, 0.7f, 0.7f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         generalTransform(); // perspective and view matrix
         renderScene();
-        renderTime();
+        //renderTime();
 
         // Read buffer
         GLubyte buf[SCR_WIDTH*SCR_HEIGHT*3] = {0};
@@ -225,7 +225,7 @@ void Scene::initGround()
     for(auto & gc:ground_cubes){
         gc.scale_ = glm::vec3(20,1.0f,20.0f);
         gc.pos_ = glm::vec3(0.0f*i,-i*voxel_size*gc.scale_[1],0.0f);
-        gc.color_ = glm::vec3(0.6-i*0.1)*glm::vec3(1.0f,0.8f,0.6f) + 
+        gc.color_ = glm::vec3(0.8-i*0.1)*glm::vec3(1.0f,0.8f,0.6f) + 
             color_noise*glm::vec3(dis(gen));
         gc.angle_ = 60.0;
         gc.rotate_axis = glm::vec3(0.0,1.0,0.0);
