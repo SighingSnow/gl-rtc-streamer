@@ -5,7 +5,7 @@ The proj is based on cloud rendering.(云渲染)
 ![](./docs/demo.gif)
 
 ### 1 Set Up 
-For the detailed enviroment setup, please refer to [SETUP.md](./docs/SETUP.md).
+For the detailed enviroment setup, please refer to [SETUP.md](./docs/setup.md).
 Ubuntu and macos is recommended.
 And please note that the server file is from libdatachannel repo.
 
