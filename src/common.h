@@ -42,7 +42,7 @@ const std::string mcube_fs = "../src/Shaders/mcube.fs";
 const std::string text_vs = "../src/Shaders/text.vs";
 const std::string text_fs = "../src/Shaders/text.fs";
 
-const std::vector<std::string> gpu_str = {"cpu","nvenc-nvidia","amf-amd","qsv-intel","videotoolbox-macos"};
+const std::vector<std::string> gpu_str = {"cpu","nvenc","vaapi","qsv","videotoolbox"};
 
 const float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,

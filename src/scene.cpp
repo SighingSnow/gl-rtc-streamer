@@ -77,7 +77,7 @@ void Scene::SetObjs()
 {
     // Compile shaders
     //lightShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
-	cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
+	//cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
     mShader = new Shader(mcube_vs.c_str(),mcube_fs.c_str());
     textShader = new Shader(text_vs.c_str(),text_fs.c_str());
     // Bind buffer

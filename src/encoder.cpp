@@ -128,14 +128,19 @@ void Encoder::endEncode()
 void Encoder::initFFmpegEnv()
 {
     int ret = 0;
-    av_register_all();
+    
     avcodec_register_all();
+    avdevice_register_all();
+    av_register_all();
     avformat_network_init();
     setCodec();
     initCodecCtx();
     if(ors_gpu_id != 0) {
         setHwCtx(); // using gpu or hw accel
         codecCtx->hw_frames_ctx = av_buffer_ref(hw_frames_ref);
+        if(codecCtx->hw_frames_ctx == nullptr) {
+            std::cout<<"[Encoder] create new reference to an av buffer fails"<<std::endl;
+        }
     }
     // for cpu only
     AVDictionary* para = nullptr;
@@ -144,8 +149,6 @@ void Encoder::initFFmpegEnv()
         av_dict_set(&para,"tune","zerolatency",0);
     }
     ret = avcodec_open2(codecCtx,codec,&para);
-
-    // allocate avframes
     allocBuffer();
     setSwsCtx();// SwsScale
     if(dump_video_option){
@@ -188,7 +191,7 @@ void Encoder::setCodec()
     {
         case 0: codec = avcodec_find_encoder(AV_CODEC_ID_H264); break;
         case 1: codec = avcodec_find_encoder_by_name("h264_nvenc"); break;
-        case 2: codec = avcodec_find_encoder_by_name("h264_amf"); break;
+        case 2: codec = avcodec_find_encoder_by_name("h264_vaapi"); break;
         case 3: codec = avcodec_find_encoder_by_name("h264_qsv"); break;
         case 4: codec = avcodec_find_encoder_by_name("h264_videotoolbox"); break;
         default:
@@ -237,7 +240,9 @@ void Encoder::allocAVFrames() {
             exit(1);
         }
         // allocate buffer for hw_frame
-        av_hwframe_get_buffer(codecCtx->hw_frames_ctx, hw_frame, 0); 
+        ret = av_hwframe_get_buffer(codecCtx->hw_frames_ctx, hw_frame, 0);
+        if(ret < 0)
+            std::cout<<"[Encoder] Allocate frame fails for codecCtx->hw_frames_ctx"<<std::endl;
     }
 }
 void Encoder::allocPkt()
@@ -250,24 +255,38 @@ void Encoder::allocPkt()
 void Encoder::setHwCtx()
 {
     int ret = 0;
-	hw_frames_ref = av_hwframe_ctx_alloc(hw_device_ctx);
     switch(ors_gpu_id){
-        case 1: break;
-        case 2: break;
-        case 3: ret = av_hwdevice_ctx_create(&hw_device_ctx, AV_HWDEVICE_TYPE_QSV,
-	      NULL, NULL, 0);  break;
-        
+        case 1: ret = av_hwdevice_ctx_create(&hw_device_ctx,AV_HWDEVICE_TYPE_CUDA, NULL, NULL, 0); break;
+        case 2: ret = av_hwdevice_ctx_create(&hw_device_ctx,AV_HWDEVICE_TYPE_VAAPI, NULL, NULL, 0);break;
+        case 3: ret = av_hwdevice_ctx_create(&hw_device_ctx, AV_HWDEVICE_TYPE_QSV,NULL, NULL, 0);  break;
+        case 4: ret = av_hwdevice_ctx_create(&hw_device_ctx,AV_HWDEVICE_TYPE_VIDEOTOOLBOX,NULL,NULL,0); break;
     }
-    if(ret == 0){
+    if(ret < 0){
         std::cout<<"[Encoder] create hwdevice context fails"<<std::endl;
         exit(-1);
     }
+    
+    hw_frames_ref = av_hwframe_ctx_alloc(hw_device_ctx);
+    
+    if(hw_frames_ref == nullptr){
+        std::cout<<"[Encoder] Failed to create frame context."<<std::endl;
+    }
+    
     frames_ctx = (AVHWFramesContext *)(hw_frames_ref->data);
-	frames_ctx->format    = AV_PIX_FMT_QSV;
+    switch(ors_gpu_id){
+        case 1: frames_ctx->format = AV_PIX_FMT_CUDA;break; // I don't know if cuda is correct
+        case 2: frames_ctx->format = AV_PIX_FMT_VAAPI;break;
+        case 3: frames_ctx->format = AV_PIX_FMT_QSV; break;
+        case 4: frames_ctx->format = AV_PIX_FMT_VIDEOTOOLBOX;break;
+    }
 	frames_ctx->sw_format = AV_PIX_FMT_YUV420P;
 	frames_ctx->width     = SCR_WIDTH;
 	frames_ctx->height    = SCR_HEIGHT;
-	av_hwframe_ctx_init(hw_frames_ref);
+    //frames_ctx->initial_pool_size = 20;
+	ret = av_hwframe_ctx_init(hw_frames_ref);
+    if(ret < 0)
+        std::cout<<"[Encoder] Finalizing to initialize hw frame context."<<std::endl;
+    
 }
 void Encoder::setSwsCtx()
 {
@@ -280,9 +299,15 @@ void Encoder::initCodecCtx()
     codecCtx = avcodec_alloc_context3(codec);
     const AVRational dst_fps = {25,1};
     codecCtx->codec_tag = 0;
-    codecCtx->codec_id = AV_CODEC_ID_H264;
+    //codecCtx->codec_id = AV_CODEC_ID_H264;
     codecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
-    codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+    switch(ors_gpu_id){
+        case 0: codecCtx->pix_fmt = AV_PIX_FMT_YUV420P; break;
+        case 1: codecCtx->pix_fmt = AV_PIX_FMT_CUDA; break;
+        case 2: codecCtx->pix_fmt = AV_PIX_FMT_VAAPI; break;
+        case 3: codecCtx->pix_fmt = AV_PIX_FMT_QSV; break;
+        case 4: codecCtx->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX; break;
+    }
     codecCtx->width = SCR_WIDTH;
     codecCtx->height = SCR_HEIGHT;
     codecCtx->gop_size = 25;

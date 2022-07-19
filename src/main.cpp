@@ -10,20 +10,15 @@ void SetScene(Scene* scene){
     scene->SetCallback();
 }
 
-// -h help
-// -gpu num
-// -d dump local video
-void parseArgv(int argc,char* argv[]) 
-{
-    
-}
-
 void doMain(int argc,char* argv[])
 {
     Scene* scene = new Scene();
     Streamer* streamer = new Streamer(*scene);
     bool dump_video_opt = false;
     int ors_gpu_id = 0;
+    // -h help
+    // -d dump local video
+    // -gpu number e.g. -gpu 0 is using cpu
     auto parseArgv = [&](){
         int index = 0;
         if(argc <= 1) return;
