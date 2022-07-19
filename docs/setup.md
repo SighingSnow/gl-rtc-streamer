@@ -36,7 +36,7 @@ make -j2
 ```
 
 ### 3 Docker
-Switch to docker branch first. The image maybe large(up to 2GB) because of ffmpeg and some other libraries. Please build in the root directory of this project.
+The image maybe large(up to 2GB) because of ffmpeg and some other libraries. Please build in the root directory of this project.
 
 ```shell
 docker build -t ors-image
@@ -44,7 +44,7 @@ docker run --rm --name my-ors -p 8080:8080 -p 8000:8000/udp ors-image
 ```
 Then in docker termianl, run
 ```shell
-xvfb-run ./ors
+xvfb-run ./ors -docker
 ```
 
 ### 4 Windows

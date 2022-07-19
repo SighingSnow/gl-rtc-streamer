@@ -23,7 +23,16 @@ python3 -m http.server --bind 127.0.0.1 8080
 ```
 then just run the program `./ors`, and open http://127.0.0.1:8080/ in your browser, and press start button.
 
-### 2 Funcs
+### 2 Parameters
+
+| Parameter | Function                                                     |
+| --------- | ------------------------------------------------------------ |
+| -docker   | Use in docker mode                                           |
+| -d        | Dump video to check video                                    |
+| -gpu num  | Use hardware for accelerate, e.g. -gpu 4 is videotoolbox. (0-cpu, 1-nvenc, 2-vaapi, 3-qsv, 4-videotoolbox) |
+
+
+### 3 Funcs
 
 Lots of work still need to be done.
 
