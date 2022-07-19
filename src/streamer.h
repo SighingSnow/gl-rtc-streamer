@@ -20,9 +20,11 @@ using json = nlohmann::json;
 class Streamer {
 public:
     Streamer(Scene & scene);
-    void beginStream();
+    void beginStream(bool dump_video_opt = false,int ors_gpu_id = 0);
     void endStream();
     void encode(uint8_t* buffer);
+    void setDumpVideoOpt(bool val);
+    void setEncodeHWId(int id);
 private:
     Scene & scene_;
     Encoder* encoder;

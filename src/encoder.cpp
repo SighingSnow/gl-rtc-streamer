@@ -22,107 +22,20 @@ Encoder::Encoder(){
 // Init ffmpeg encoder
 void Encoder::Init()
 {
-    av_register_all();
-    avcodec_register_all();
-    avformat_network_init();
-    int ret = 0;
-    in_buf[0] = (uint8_t*)malloc(sizeof(uint8_t)*SCR_HEIGHT*SCR_WIDTH*3);
-    in_buf[1] = nullptr;
-
-    // Output file context
-
-    avformat_alloc_output_context2(&ofctx,NULL,NULL,out_filename);
-    outputFormat = ofctx->oformat;
-
-    if(avio_open2(&ofctx->pb,out_filename,AVIO_FLAG_WRITE, nullptr,nullptr) < 0)
-    {
-        std::cout << "open outfile error" << std::endl;
-        return;
-    }
-
-    codec = avcodec_find_encoder(AV_CODEC_ID_H264);
-    stream = avformat_new_stream(ofctx,codec);
-    codecCtx = avcodec_alloc_context3(codec);
-
-    if(stream == nullptr){
-        std::cout<<"Create new stream fails"<<std::endl;
-        return;
-    }
-    const AVRational dst_fps = {25,1};
-    codecCtx->codec_tag = 0;
-    codecCtx->codec_id = AV_CODEC_ID_H264;
-    codecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
-    codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
-    codecCtx->width = SCR_WIDTH;
-    codecCtx->height = SCR_HEIGHT;
-    codecCtx->gop_size = 25;
-    codecCtx->framerate = dst_fps;
-    codecCtx->time_base = av_inv_q(dst_fps);
-    //codecCtx->bit_rate = SCR_HEIGHT * SCR_WIDTH * 3;
-    codecCtx->max_b_frames = 0;
-    if(ofctx->oformat->flags & AVFMT_GLOBALHEADER){
-        codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-    }
-    ret = avcodec_parameters_from_context(stream->codecpar,codecCtx);
-    if(ret < 0){
-        std::cout<<"Could not initialize stream codec parameters"<<std::endl;
-        exit(1);
-    }
-
-    AVDictionary* para = nullptr;
-    if(codecCtx->codec_id == AV_CODEC_ID_H264){
-        av_dict_set(&para,"preset","slow",0);
-        av_dict_set(&para,"tune","zerolatency",0);
-    }
-    ret = avcodec_open2(codecCtx,codec,&para);
-    if(ret < 0){
-        std::cout<<"avcodec_open2 failed"<<std::endl;
-        return;
-    }
-    stream->codecpar->extradata_size = codecCtx->extradata_size;
-    stream->codecpar->extradata = codecCtx->extradata;
-    avformat_write_header(ofctx,NULL);
-    pkt = av_packet_alloc();
-    if(!pkt)
-        exit(1);
-
-    frameYUV = av_frame_alloc();
-    if(!frameYUV){
-        std::cerr<<"Could not allocate video frame\n";
-        exit(1);
-    }
-    frameYUV->format = AV_PIX_FMT_YUV420P;
-    frameYUV->width = SCR_WIDTH;
-    frameYUV->height = SCR_HEIGHT;
-    ret = av_frame_get_buffer(frameYUV,0);
-    if (ret < 0) {
-        fprintf(stderr, "Could not allocate the video frame data\n");
-        exit(1);
-    }
-
-    fout = fopen(out_filename,"wb");
-
-    swsContext = sws_getContext(SCR_WIDTH,SCR_HEIGHT,AV_PIX_FMT_RGB24,
-                                SCR_WIDTH,SCR_HEIGHT,AV_PIX_FMT_YUV420P,
-                                SWS_BICUBIC,NULL,NULL,NULL);
+    initFFmpegEnv();
 }
 
-void Encoder::GenOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size)
+void Encoder::genOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size)
 {
-    // TODO: please reverse the picture upside down
-    flip(&buffer);
-    memcpy(in_buf[0],buffer,sizeof(uint8_t)*SCR_HEIGHT*SCR_WIDTH*3);
-    in_buf[1] = nullptr;
-    // Dump
-    //rgb24toppm(buffer,SCR_WIDTH,SCR_HEIGHT);
-    //rgb24toppm(in_buf[0],SCR_WIDTH,SCR_HEIGHT);
-    int height = sws_scale(swsContext,(const uint8_t* const*)in_buf,inlinesize,0,SCR_HEIGHT,
-                           frameYUV->data,frameYUV->linesize);
-    if(height <= 0) exit(1);
-    // TODO: whether pts info needed should be further discuss
-    //frameYUV->pts = (frame_count++)*(stream->time_base.den)/((stream->time_base.num)*25);
-    frameYUV->pts = AV_NOPTS_VALUE;
-    int ret = avcodec_send_frame(codecCtx,frameYUV);
+    int ret = 0;
+    rgb24ToYuvframe(buffer);
+    if(ors_gpu_id) {
+        av_hwframe_transfer_data(hw_frame, frameYUV, 0);
+        ret = avcodec_send_frame(codecCtx,hw_frame);
+    } else {
+        ret = avcodec_send_frame(codecCtx,frameYUV);
+    }
+    
     if(ret < 0){
         printf("Error sending a frame for encoding");
         exit(1);
@@ -137,7 +50,7 @@ void Encoder::GenOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size)
             exit(1);
         }
         if(dump_video_option){
-            DumpLocalVideo();
+            dumpLocalVideo();
         }
         ret_buf_size = pkt->size;
         //printf("%d\n",ret_buf_size);
@@ -148,7 +61,7 @@ void Encoder::GenOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size)
     }
 }
 
-void Encoder::DumpLocalVideo()
+void Encoder::dumpLocalVideo()
 {
     static int count = 2;
     pkt->stream_index = stream->index;
@@ -161,11 +74,12 @@ void Encoder::DumpLocalVideo()
     //count--;
 }
 
-void Encoder::FlushEncoder(int streamIndex)
+void Encoder::flushEncoder(int streamIndex)
 {
     int ret;
     int got_frame;
     AVPacket enc_pkt;
+    if(ofctx == nullptr) return;
     if(!(ofctx->streams[0]->codec->codec->capabilities & AV_CODEC_CAP_DELAY))
         return;
     while(1){
@@ -188,25 +102,220 @@ void Encoder::FlushEncoder(int streamIndex)
     return;
 }
 
-void Encoder::EndEncode()
+void Encoder::endEncode()
 {
-    FlushEncoder(0);
-    av_write_trailer(ofctx);
-    if(stream){
-        avcodec_close(stream->codec);
+    if(dump_video_option) {
+        flushEncoder(0);
+        av_write_trailer(ofctx);
+        if(stream){
+            avcodec_close(stream->codec);
+        }
+        avio_close(ofctx->pb);
+        avformat_free_context(ofctx);
+        fclose(fout);
     }
-    avio_close(ofctx->pb);
     av_packet_unref(pkt);
-    avformat_free_context(ofctx);
     //avcodec_free_context(&codecCtx);
     av_frame_free(&frameYUV);
+    if(ors_gpu_id){
+        av_frame_free(&hw_frame);
+        av_buffer_unref(&hw_device_ctx);
+    } 
     //sav_packet_free(&pkt);
     sws_freeContext(swsContext);
-    fclose(fout);
+}
+
+void Encoder::initFFmpegEnv()
+{
+    int ret = 0;
+    av_register_all();
+    avcodec_register_all();
+    avformat_network_init();
+    setCodec();
+    initCodecCtx();
+    if(ors_gpu_id != 0) {
+        setHwCtx(); // using gpu or hw accel
+        codecCtx->hw_frames_ctx = av_buffer_ref(hw_frames_ref);
+    }
+    // for cpu only
+    AVDictionary* para = nullptr;
+    if(codecCtx->codec_id == AV_CODEC_ID_H264){
+        av_dict_set(&para,"preset","slow",0);
+        av_dict_set(&para,"tune","zerolatency",0);
+    }
+    ret = avcodec_open2(codecCtx,codec,&para);
+
+    // allocate avframes
+    allocBuffer();
+    setSwsCtx();// SwsScale
+    if(dump_video_option){
+        initLocalStream();
+    }
+}
+void Encoder::initLocalStream()
+{
+    int ret;
+    avformat_alloc_output_context2(&ofctx,NULL,NULL,out_filename.c_str());
+    outputFormat = ofctx->oformat;
+    if(avio_open2(&ofctx->pb,out_filename.c_str(),AVIO_FLAG_WRITE, nullptr,nullptr) < 0)
+    {
+        std::cout << "open outfile error" << std::endl;
+        return;
+    }
+    if(ofctx->oformat->flags & AVFMT_GLOBALHEADER){
+        codecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+    }
+    stream = avformat_new_stream(ofctx,codec);
+    if(stream == nullptr){
+        std::cout<<"Create new stream fails"<<std::endl;
+        return;
+    }
+    
+    ret = avcodec_parameters_from_context(stream->codecpar,codecCtx);
+    if(ret < 0){
+        std::cout<<"Could not initialize stream codec parameters"<<std::endl;
+        exit(1);
+    }
+    stream->codecpar->extradata_size = codecCtx->extradata_size;
+    stream->codecpar->extradata = codecCtx->extradata;
+    avformat_write_header(ofctx,NULL);
+    fout = fopen(out_filename.c_str(),"wb");
+}
+
+void Encoder::setCodec()
+{
+    switch(ors_gpu_id)
+    {
+        case 0: codec = avcodec_find_encoder(AV_CODEC_ID_H264); break;
+        case 1: codec = avcodec_find_encoder_by_name("h264_nvenc"); break;
+        case 2: codec = avcodec_find_encoder_by_name("h264_amf"); break;
+        case 3: codec = avcodec_find_encoder_by_name("h264_qsv"); break;
+        case 4: codec = avcodec_find_encoder_by_name("h264_videotoolbox"); break;
+        default:
+            codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+            break;
+    }
+    if(codec == nullptr) {
+        ors_gpu_id = 0;
+        codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+        std::cout<<"Specific accelerate hardware not found, using cpu encoding"<<std::endl;
+    }
+    return;
+}
+
+void Encoder::allocBuffer()
+{
+    allocInBuf();
+    allocAVFrames();
+    allocPkt();
+}
+void Encoder::allocInBuf(){
+    in_buf[0] = (uint8_t*)malloc(sizeof(uint8_t)*SCR_HEIGHT*SCR_WIDTH*3);
+    in_buf[1] = nullptr;
+}
+void Encoder::allocAVFrames() {
+    int ret = 0;
+    // init frameYUV
+    frameYUV = av_frame_alloc();
+    if(!frameYUV){
+        std::cerr<<"Could not allocate video frame\n";
+        exit(1);
+    }
+    frameYUV->format = AV_PIX_FMT_YUV420P;
+    frameYUV->width = SCR_WIDTH;
+    frameYUV->height = SCR_HEIGHT;
+    ret = av_frame_get_buffer(frameYUV,0);
+    if (ret < 0) {
+        fprintf(stderr, "Could not allocate the video frame data\n");
+        exit(1);
+    }
+    if(ors_gpu_id){
+        // init hw_frame
+        hw_frame = av_frame_alloc();
+        if(!hw_frame){
+            std::cerr<<"Could not allocate video frame\n";
+            exit(1);
+        }
+        // allocate buffer for hw_frame
+        av_hwframe_get_buffer(codecCtx->hw_frames_ctx, hw_frame, 0); 
+    }
+}
+void Encoder::allocPkt()
+{
+    pkt = av_packet_alloc();
+    if(!pkt)
+        exit(1);
+}
+
+void Encoder::setHwCtx()
+{
+    int ret = 0;
+	hw_frames_ref = av_hwframe_ctx_alloc(hw_device_ctx);
+    switch(ors_gpu_id){
+        case 1: break;
+        case 2: break;
+        case 3: ret = av_hwdevice_ctx_create(&hw_device_ctx, AV_HWDEVICE_TYPE_QSV,
+	      NULL, NULL, 0);  break;
+        
+    }
+    if(ret == 0){
+        std::cout<<"[Encoder] create hwdevice context fails"<<std::endl;
+        exit(-1);
+    }
+    frames_ctx = (AVHWFramesContext *)(hw_frames_ref->data);
+	frames_ctx->format    = AV_PIX_FMT_QSV;
+	frames_ctx->sw_format = AV_PIX_FMT_YUV420P;
+	frames_ctx->width     = SCR_WIDTH;
+	frames_ctx->height    = SCR_HEIGHT;
+	av_hwframe_ctx_init(hw_frames_ref);
+}
+void Encoder::setSwsCtx()
+{
+    swsContext = sws_getContext(SCR_WIDTH,SCR_HEIGHT,AV_PIX_FMT_RGB24,
+                                SCR_WIDTH,SCR_HEIGHT,AV_PIX_FMT_YUV420P,
+                                SWS_BICUBIC,NULL,NULL,NULL);
+}
+void Encoder::initCodecCtx()
+{
+    codecCtx = avcodec_alloc_context3(codec);
+    const AVRational dst_fps = {25,1};
+    codecCtx->codec_tag = 0;
+    codecCtx->codec_id = AV_CODEC_ID_H264;
+    codecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
+    codecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+    codecCtx->width = SCR_WIDTH;
+    codecCtx->height = SCR_HEIGHT;
+    codecCtx->gop_size = 25;
+    codecCtx->framerate = dst_fps;
+    codecCtx->time_base = av_inv_q(dst_fps);
+    //codecCtx->bit_rate = SCR_HEIGHT * SCR_WIDTH * 3;
+    codecCtx->max_b_frames = 0;
+}
+
+void Encoder::rgb24ToYuvframe(uint8_t* buffer)
+{
+    // TODO: please reverse the picture upside down
+    flip(&buffer);
+    memcpy(in_buf[0],buffer,sizeof(uint8_t)*SCR_HEIGHT*SCR_WIDTH*3);
+    in_buf[1] = nullptr;
+    // Dump
+    //rgb24toppm(buffer,SCR_WIDTH,SCR_HEIGHT);
+    //rgb24toppm(in_buf[0],SCR_WIDTH,SCR_HEIGHT);
+    int height = sws_scale(swsContext,(const uint8_t* const*)in_buf,inlinesize,0,SCR_HEIGHT,
+                           frameYUV->data,frameYUV->linesize);
+    if(height <= 0) exit(1);
+    // TODO: whether pts info needed should be further discuss
+    //frameYUV->pts = (frame_count++)*(stream->time_base.den)/((stream->time_base.num)*25);
+    frameYUV->pts = AV_NOPTS_VALUE;
+    return;
+}
+
+void Encoder::setHWId(int id)
+{
+    ors_gpu_id = id;
 }
 
 // Below are funcs help to debug, not necessary
-
 // the buf is up-down reversed
 void Encoder::rgb24toppm(uint8_t *buf, int width, int height)
 {

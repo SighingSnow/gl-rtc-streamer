@@ -6,13 +6,14 @@
 #define COMMON_H
 #include <thread>
 #include <mutex>
-
+#include <vector>
 // For debug
-static char* out_h264 = "out.h264";
+const std::string out_h264 = "out.h264";
 static char* RTMP_LIVESTEAM = "rtmp://localhost/live/livestream";
 static bool dump_video_option = false;
 static bool rtmp_publish_option = false;
 static bool rtc_publish_option = true;
+static bool docker_option = false;
 // This is for screen saving
 #ifdef __APPLE__
 const int scale = 2;
@@ -26,7 +27,7 @@ const unsigned int screen_height = 600;
 const unsigned int SCR_WIDTH = screen_width * scale;
 const unsigned int SCR_HEIGHT = screen_height * scale;
 // webrtc
-const std::string DEFAULT_IP_ADDRESS = "host.docker.internal";
+const std::string DEFAULT_IP_ADDRESS = "127.0.0.1";
 const uint16_t defaultPort = 8000;
 // FFMPEG parameters
 const int inlinesize[2] = {SCR_WIDTH*3,0}; // For sws_scale convert function
@@ -40,6 +41,8 @@ const std::string mcube_vs = "../src/Shaders/mcube.vs";
 const std::string mcube_fs = "../src/Shaders/mcube.fs";
 const std::string text_vs = "../src/Shaders/text.vs";
 const std::string text_fs = "../src/Shaders/text.fs";
+
+const std::vector<std::string> gpu_str = {"cpu","nvenc-nvidia","amf-amd","qsv-intel","videotoolbox-macos"};
 
 const float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,

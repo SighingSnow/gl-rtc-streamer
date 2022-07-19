@@ -30,24 +30,45 @@ class Encoder {
 public:
     Encoder();
     void Init();
-    void GenOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size);
-    void DumpLocalVideo();
-    void FlushEncoder(int streamIndex);
-    void EndEncode();
+    void genOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size);
+    void dumpLocalVideo();
+    void flushEncoder(int streamIndex);
+    void endEncode();
+    void setHWId(int id);
+    bool dump_video_option = false;
 private:
     int frame_count;
     uint8_t * in_buf[2];
-    char* out_filename;
+    std::string out_filename;
     FILE* fout;
 private:
     AVCodec* codec;
     AVCodecContext* codecCtx;
     AVFormatContext* ofctx;
-    AVStream* stream;
+    AVStream* stream; // dump local video
     AVOutputFormat* outputFormat;
     AVPacket* pkt;
     AVFrame* frameYUV;
     SwsContext* swsContext;
+private:
+    AVBufferRef *hw_device_ctx = nullptr;
+    AVBufferRef *hw_frames_ref = nullptr;
+    AVHWFramesContext * frames_ctx;
+    AVFrame * hw_frame;
+    // gpu_id 0: cpu 1: nvidia gpu  2: amd gpu card  
+    // 3: intel : quick sync video 4: macos : video tool box
+    int ors_gpu_id = 0; 
+    void rgb24ToYuvframe(uint8_t* buffer);
+    void initFFmpegEnv();
+    void initLocalStream();
+    void setCodec();
+    void allocBuffer();
+    void allocInBuf();
+    void allocAVFrames();
+    void allocPkt();
+    void setSwsCtx();
+    void setHwCtx(); // Hardware context
+    void initCodecCtx();
 // For debug
 private:
     void rgb24toppm(uint8_t* buf,int width,int height);

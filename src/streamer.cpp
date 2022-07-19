@@ -19,9 +19,11 @@ void Streamer::initRtmp() {
     rtmp_publisher->setUp();
 }
 
-void Streamer::beginStream()
+void Streamer::beginStream(bool dump_video_opt,int ors_gpu_id)
 {
     encoder = new Encoder();
+    encoder->dump_video_option = dump_video_opt;
+    encoder->setHWId(ors_gpu_id);
     encoder->Init();
     if(rtmp_publish_option){
         initRtmp();
@@ -35,12 +37,17 @@ void Streamer::encode(uint8_t *buffer)
 {
     int ret_buf_size = 0;
     uint8_t* ret_buf = nullptr;
-    encoder->GenOnePkt(buffer,&ret_buf,ret_buf_size);
+    encoder->genOnePkt(buffer,&ret_buf,ret_buf_size);
     if(rtmp_publish_option)
         rtmpPublish(ret_buf,ret_buf_size);
     if(rtc_publish_option)
         rtcPublish(ret_buf,ret_buf_size);
     free(ret_buf); // malloced in encoder
+}
+
+void Streamer::setEncodeHWId(int id)
+{
+    encoder->setHWId(id);
 }
 
 void Streamer::rtmpPublish(uint8_t *buf, int size) {
@@ -53,7 +60,7 @@ void Streamer::rtcPublish(uint8_t *buf, int size) {
 
 void Streamer::endStream()
 {
-    encoder->EndEncode();
+    encoder->endEncode();
 }
 
 void Streamer::initRtc()
