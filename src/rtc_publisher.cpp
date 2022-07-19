@@ -46,6 +46,11 @@ void RtcPublisher::setUp()
     return;
 }
 
+void RtcPublisher::setPubAddr(const std::string addr)
+{
+    DEFAULT_IP_ADDRESS = addr;
+}
+
 void RtcPublisher::publish(uint8_t *buf, int size) {
     //TODO: current buf is raw, no pps and sps data
     int index = 0;

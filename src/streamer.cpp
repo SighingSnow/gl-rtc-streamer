@@ -19,7 +19,7 @@ void Streamer::initRtmp() {
     rtmp_publisher->setUp();
 }
 
-void Streamer::beginStream(bool dump_video_opt,int ors_gpu_id)
+void Streamer::beginStream(bool dump_video_opt,int ors_gpu_id,std::string ip_addr)
 {
     encoder = new Encoder();
     encoder->dump_video_option = dump_video_opt;
@@ -29,7 +29,7 @@ void Streamer::beginStream(bool dump_video_opt,int ors_gpu_id)
         initRtmp();
     }
     else if(rtc_publish_option){
-        initRtc();
+        initRtc(ip_addr);
     }
 }
 
@@ -63,9 +63,10 @@ void Streamer::endStream()
     encoder->endEncode();
 }
 
-void Streamer::initRtc()
+void Streamer::initRtc(std::string ip_addr)
 {
     rtc_publisher = new RtcPublisher();
+    rtc_publisher->setPubAddr(ip_addr);
     rtc_publisher->setUp();
     // bind callback
     func_keyboard = std::bind(&Scene::clientKeyboardCallback,scene_,std::placeholders::_1);

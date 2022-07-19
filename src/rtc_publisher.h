@@ -27,6 +27,7 @@ public:
     }
     void setUp();
     void publish(uint8_t *buf, int size);
+    void setPubAddr(const std::string addr);
     ~RtcPublisher(){
         dc->close();
         pc->close();
@@ -36,6 +37,7 @@ public:
     void setInputCallBack(std::function<void(char)>* func_keyboard,
     std::function<void(double,double)>* func_mouse_move);
 protected:
+    std::string DEFAULT_IP_ADDRESS = "127.0.0.1";
     Configuration rtc_config;
     shared_ptr<WebSocket> ws;
     std::shared_ptr<H264FileParser> video;

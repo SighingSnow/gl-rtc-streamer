@@ -295,6 +295,7 @@ void Scene::initTrees()
         t.radius = 22;
         initBranch(t);
         initLeaves(t.pos_,t.theight,t.radius,t.leaves_);
+        //std::cout<<"leaves num"<<t.leaves_.size()<<std::endl;
     }
     return;
 }

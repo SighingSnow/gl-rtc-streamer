@@ -27,7 +27,6 @@ const unsigned int screen_height = 600;
 const unsigned int SCR_WIDTH = screen_width * scale;
 const unsigned int SCR_HEIGHT = screen_height * scale;
 // webrtc
-const std::string DEFAULT_IP_ADDRESS = "127.0.0.1";
 const uint16_t defaultPort = 8000;
 // FFMPEG parameters
 const int inlinesize[2] = {SCR_WIDTH*3,0}; // For sws_scale convert function

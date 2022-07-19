@@ -20,7 +20,7 @@ using json = nlohmann::json;
 class Streamer {
 public:
     Streamer(Scene & scene);
-    void beginStream(bool dump_video_opt = false,int ors_gpu_id = 0);
+    void beginStream(bool dump_video_opt = false,int ors_gpu_id = 0,string ip_addr = "");
     void endStream();
     void encode(uint8_t* buffer);
     void setDumpVideoOpt(bool val);
@@ -31,7 +31,7 @@ private:
     RtmpPublisher* rtmp_publisher;
     RtcPublisher* rtc_publisher;
 private:
-    void initRtc();
+    void initRtc(std::string ip_addr);
     void initRtmp();
     void rtmpPublish(uint8_t* buf,int size);
     void rtcPublish(uint8_t* buf,int size);

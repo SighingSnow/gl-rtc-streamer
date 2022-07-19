@@ -16,6 +16,7 @@ void doMain(int argc,char* argv[])
     Streamer* streamer = new Streamer(*scene);
     bool dump_video_opt = false;
     int ors_gpu_id = 0;
+    std::string ip_addr = "127.0.0.1";
     // -h help
     // -d dump local video
     // -gpu number e.g. -gpu 0 is using cpu
@@ -34,16 +35,24 @@ void doMain(int argc,char* argv[])
                 ors_gpu_id = (argv[index+1][0]-'0');
                 std::cout<<"[MAIN] Trying to access "<<gpu_str[ors_gpu_id]<<" for encoding"<<std::endl;
                 index++;
+            } 
+            else if(std::string(argv[index]) == "-docker") {
+                ip_addr = "host.docker.internal";
+            }
+            else if(std::string(argv[index]) == "-ip"){
+                if(index+1 >= argc) {
+                    exit(-1);
+                }
+                ip_addr = std::string(argv[index+1]);
             }
             index++;
         }
         return;
     };
     parseArgv();
-
     SetScene(scene);
     scene->AttachStreamer(streamer);
-    streamer->beginStream(dump_video_opt,ors_gpu_id);
+    streamer->beginStream(dump_video_opt,ors_gpu_id,ip_addr);
     scene->DrawScene();
     streamer->endStream();
     scene->Terminate();
