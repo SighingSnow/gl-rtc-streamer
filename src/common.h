@@ -44,6 +44,14 @@ const std::string text_fs = "../src/Shaders/text.fs";
 
 const std::vector<std::string> gpu_str = {"cpu","nvenc","vaapi","qsv","videotoolbox"};
 
+enum HW_ACCEL_TYPE {
+        CPU,
+        NVENC,
+        VAAPI,
+        QSV,
+        VIDEOTOOLBOX
+};
+
 const float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,

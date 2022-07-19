@@ -29,7 +29,7 @@ void Encoder::genOnePkt(uint8_t* buffer,uint8_t** ret_buf,int& ret_buf_size)
 {
     int ret = 0;
     rgb24ToYuvframe(buffer);
-    if(ors_gpu_id) {
+    if(ors_gpu_id && ors_gpu_id != HW_ACCEL_TYPE::VIDEOTOOLBOX) {
         av_hwframe_transfer_data(hw_frame, frameYUV, 0);
         ret = avcodec_send_frame(codecCtx,hw_frame);
     } else {
@@ -135,7 +135,7 @@ void Encoder::initFFmpegEnv()
     avformat_network_init();
     setCodec();
     initCodecCtx();
-    if(ors_gpu_id != 0) {
+    if(ors_gpu_id != HW_ACCEL_TYPE::CPU && ors_gpu_id != HW_ACCEL_TYPE::VIDEOTOOLBOX) {
         setHwCtx(); // using gpu or hw accel
         codecCtx->hw_frames_ctx = av_buffer_ref(hw_frames_ref);
         if(codecCtx->hw_frames_ctx == nullptr) {
@@ -232,7 +232,8 @@ void Encoder::allocAVFrames() {
         fprintf(stderr, "Could not allocate the video frame data\n");
         exit(1);
     }
-    if(ors_gpu_id){
+    // Videotoolbox will malloc frame automatically
+    if(ors_gpu_id && ors_gpu_id != HW_ACCEL_TYPE::VIDEOTOOLBOX){
         // init hw_frame
         hw_frame = av_frame_alloc();
         if(!hw_frame){
@@ -306,7 +307,7 @@ void Encoder::initCodecCtx()
         case 1: codecCtx->pix_fmt = AV_PIX_FMT_CUDA; break;
         case 2: codecCtx->pix_fmt = AV_PIX_FMT_VAAPI; break;
         case 3: codecCtx->pix_fmt = AV_PIX_FMT_QSV; break;
-        case 4: codecCtx->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX; break;
+        case 4: codecCtx->pix_fmt = AV_PIX_FMT_YUV420P; break;
     }
     codecCtx->width = SCR_WIDTH;
     codecCtx->height = SCR_HEIGHT;
