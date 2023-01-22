@@ -77,7 +77,7 @@ void Encoder::dumpLocalVideo()
 void Encoder::flushEncoder(int streamIndex)
 {
     int ret;
-    int got_frame;
+    int got_pkt;
     AVPacket enc_pkt;
     if(ofctx == nullptr) return;
     if(!(ofctx->streams[0]->codec->codec->capabilities & AV_CODEC_CAP_DELAY))
@@ -86,14 +86,24 @@ void Encoder::flushEncoder(int streamIndex)
         enc_pkt.data = nullptr;
         enc_pkt.size = 0;
         av_init_packet(&enc_pkt);
-        ret = avcodec_encode_video2(ofctx->streams[streamIndex]->codec,&enc_pkt, nullptr,&got_frame);
-        av_frame_free(NULL);
+        ret = avcodec_send_frame(ofctx->streams[streamIndex]->codec,nullptr);
+        // ret = avcodec_encode_video2(ofctx->streams[streamIndex]->codec,&enc_pkt, nullptr,&got_pkt);
+        
         if(ret < 0)
             break;
-        if(!got_frame){
-            ret = 0;
+        if(ret == 0){
+            got_pkt = avcodec_receive_packet(ofctx->streams[streamIndex]->codec,&enc_pkt);
+            if (got_pkt == AVERROR(EAGAIN) || got_pkt == AVERROR_EOF){
+                fprintf(stderr, "Error receiving packet\n");
+                return ;
+            }
+            else if (got_pkt < 0) {
+                fprintf(stderr, "Error encoding audio frame\n");
+                exit(1);
+            }
             break;
         }
+        av_frame_free(NULL);
         printf("Flush Encoder: Succeed to encode 1 frame!\tsize:%5d\n",enc_pkt.size);
         ret = av_write_frame(ofctx,&enc_pkt);
         if(ret < 0)
@@ -129,9 +139,9 @@ void Encoder::initFFmpegEnv()
 {
     int ret = 0;
     
-    avcodec_register_all();
+    //avcodec_register_all();
     avdevice_register_all();
-    av_register_all();
+    //av_register_all();
     avformat_network_init();
     setCodec();
     initCodecCtx();

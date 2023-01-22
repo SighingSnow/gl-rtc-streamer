@@ -35,7 +35,7 @@ public:
     }
 public:
     void setInputCallBack(std::function<void(char)>* func_keyboard,
-    std::function<void(double,double)>* func_mouse_move);
+        std::function<void(double,double)>* func_mouse_move);
 protected:
     std::string DEFAULT_IP_ADDRESS = "127.0.0.1";
     Configuration rtc_config;
