@@ -4,6 +4,9 @@ project(ors)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
 
+option(NO_EXAMPLES "Disable examples" ON)
+option(NO_TESTS "Disable tests build" ON)
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavdevice
@@ -37,6 +40,7 @@ endif()
 include_directories(3rd_party/glm)
 
 add_subdirectory(3rd_party/librtc)
+add_subdirectory(3rd_party/json)
 
 add_executable(
         ors

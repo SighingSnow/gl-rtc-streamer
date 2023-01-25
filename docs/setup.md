@@ -3,7 +3,7 @@
 ### 0 Local
 On your local pc, please set up the signaling server first.
 ```shell
-git submodule update --init --recursive
+git submodule update --init --recursive --depth 1
 cd client
 python3 signaling-server.py
 python3 -m http.server --bind 127.0.0.1 8080
