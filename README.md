@@ -45,8 +45,9 @@ Lots of work still need to be done.
 - [x] Use librtc(libdatachannel is the origin name) to send memory video.
 - [x] Enable browser control.
 - [x] Accelerate encode.(partial)
-- [ ] Integrate with webgl rendering.
-- [ ] Task scheduling on local and remote machine
+- [ ] Resources(texture & mesh) pre-forward
+- [ ] Integrate render on client and server
+- [ ] Adjust bitrate dynamicaly according to net status
 
 
 **Please note: the repo's license is MIT, but the 3rd_party/librtc is GPL.**
