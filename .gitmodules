@@ -5,3 +5,6 @@
 	path = 3rd_party/json
 	url = https://github.com/nlohmann/json.git
 	shallow = true
+[submodule "3rd_party/assimp"]
+	path = 3rd_party/assimp
+	url = https://github.com/assimp/assimp.git

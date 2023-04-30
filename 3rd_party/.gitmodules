@@ -1,0 +1,2 @@
+[submodule "3rd_party/assimp"]
+	shallow = true

@@ -36,6 +36,13 @@ set(GLAD_SRC ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/glad/src/glad.c)
 if(NOT WIN32)
     LIST(APPEND LIBS dl)
 endif()
+# assimp
+option(ASSIMP_BUILD_DOCS OFF)
+option(ASSIMP_BUILD_EXAMPLES OFF)
+option(ASSIMP_BUILD_TESTS OFF)
+add_subdirectory(3rd_party/assimp)
+include_directories(3rd_party/assimp/include)
+LIST(APPEND LIBS assimp ${ASSIMP_LIBRARIES})
 
 include_directories(3rd_party/glm)
 
