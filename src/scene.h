@@ -14,6 +14,7 @@
 #include <vector>
 #include FT_FREETYPE_H
 #include "streamer.h"
+#include "Model.h"
 #include<chrono>
 #include<random>
 
@@ -64,6 +65,7 @@ private:
     GLFWwindow* window;
     unsigned int VBO,tVBO;
     unsigned int VAO,tVAO,lightCubeVAO;
+    std::vector<Model*> models_; // TODO: delete 
     Shader* mShader;
     Shader* textShader;
     Camera* camera;
@@ -74,7 +76,8 @@ public:
     void clientMouseMoveCallback(double x,double y);
 // draw my scene.
 private:
-    Shader* cShader;
+    Shader * cShader;
+    Shader * modelShader_;
     int tree_num = 3;
     double voxel_size = 0.006;
     double base_height = 0.0f;
@@ -85,10 +88,12 @@ private:
     void initBackground();
     void initGround();
     void initTrees();
+    void initModel();
     void renderScene();
     void renderGround();
     void renderTree();
     void renderTime();
+    void renderModel();
     void renderCube(glm::vec3 pos,glm::vec3 scale,glm::vec3 color,
         double angle = 0.0f,
         glm::vec3 rotate_axis =glm::vec3(0.0f,0.0f,0.0f)

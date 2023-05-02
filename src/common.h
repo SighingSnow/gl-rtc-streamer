@@ -40,6 +40,8 @@ const std::string mcube_vs = "../src/Shaders/mcube.vs";
 const std::string mcube_fs = "../src/Shaders/mcube.fs";
 const std::string text_vs = "../src/Shaders/text.vs";
 const std::string text_fs = "../src/Shaders/text.fs";
+const std::string model_vs = "../src/Shaders/model.vs";
+const std::string model_fs = "../src/Shaders/model.fs";
 
 const std::vector<std::string> gpu_str = {"cpu","nvenc","vaapi","qsv","videotoolbox"};
 

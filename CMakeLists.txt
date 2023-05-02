@@ -61,6 +61,7 @@ add_executable(
         ${CMAKE_CURRENT_SOURCE_DIR}/src/h264fileparser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stream.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/model.cpp
         ${GLAD_SRC}
 )
 

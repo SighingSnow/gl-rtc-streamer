@@ -80,6 +80,7 @@ void Scene::SetObjs()
 	//cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
     mShader = new Shader(mcube_vs.c_str(),mcube_fs.c_str());
     textShader = new Shader(text_vs.c_str(),text_fs.c_str());
+    modelShader_ = new Shader(model_vs.c_str(),model_fs.c_str());
     // Bind buffer
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -118,8 +119,9 @@ void Scene::SetObjs()
 void Scene::initScene()
 {
     initBackground();
-    initGround();
-    initTrees();
+    // initGround();
+    // initTrees();
+    initModel();
 }
 
 void Scene::SetCallback()
@@ -146,7 +148,7 @@ void Scene::DrawScene()
     time_t now = time(NULL);
 
     initScene();
-
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -194,6 +196,10 @@ void Scene::generalTransform()
     glm::mat4 view = camera->GetViewMatrix();
     mShader->setMat4("projection", projection);
     mShader->setMat4("view", view);
+
+    modelShader_->use();
+    modelShader_->setMat4("projection",projection);
+    modelShader_->setMat4("view",view);
 }
 
 void Scene::initBackground()
@@ -300,10 +306,27 @@ void Scene::initTrees()
     return;
 }
 
+void Scene::initModel()
+{
+    Model * model = new Model("../resource/mesh/mario/Mario.obj");
+    models_.push_back(model);
+}
+
 void Scene::renderScene()
 {
-    renderGround();
-    renderTree();
+    // renderGround();
+    // renderTree();
+    renderModel();
+}
+void Scene::renderModel()
+{
+    modelShader_->use();
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model,glm::vec3(0.01f));
+    modelShader_->setMat4("model",model);
+    for(auto & model_ : models_) {
+        model_->Draw(*modelShader_);
+    }
 }
 void Scene::renderGround()
 {
