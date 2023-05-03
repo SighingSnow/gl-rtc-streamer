@@ -24,7 +24,6 @@ Scene::Scene()
     VBO = 0;
     camera = new Camera(glm::vec3(1.0,2.18f,8.91f));
     //camera = new Camera(glm::vec3(0.0f,0.0f,3.0f));
-    lightPos = glm::vec3(1.0f, 2.0f, 1.0f);
     prev_time = 0.0;
     frame_count = 0;
     delta_t = 0.0;
@@ -94,14 +93,6 @@ void Scene::SetObjs()
     // normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    
-    glGenVertexArrays(1, &lightCubeVAO);
-    glBindVertexArray(lightCubeVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
 
     loadFonts();
     // This is for the text
@@ -114,7 +105,6 @@ void Scene::SetObjs()
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
 }
 
 void Scene::initScene()

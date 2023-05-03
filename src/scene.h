@@ -52,11 +52,10 @@ private:
 private:
     GLFWwindow* window;
     unsigned int VBO,tVBO;
-    unsigned int VAO,tVAO,lightCubeVAO;
+    unsigned int VAO,tVAO;
     std::vector<Model*> models_; // TODO: delete 
     Shader* textShader;
     Camera* camera;
-    glm::vec3 lightPos;
     std::map<GLchar, Character> Characters;
 public:
     void clientKeyboardCallback(char c);
