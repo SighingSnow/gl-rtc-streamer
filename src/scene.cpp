@@ -22,7 +22,6 @@ Scene::Scene()
     window = nullptr;
     VAO = 0;
     VBO = 0;
-    mShader = nullptr;
     camera = new Camera(glm::vec3(1.0,2.18f,8.91f));
     //camera = new Camera(glm::vec3(0.0f,0.0f,3.0f));
     lightPos = glm::vec3(1.0f, 2.0f, 1.0f);
@@ -81,7 +80,6 @@ void Scene::SetObjs()
 	//cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
     skybox_ = new SkyBox(*camera);
     skybox_->init();
-    mShader = new Shader(mcube_vs.c_str(),mcube_fs.c_str());
     textShader = new Shader(text_vs.c_str(),text_fs.c_str());
     modelShader_ = new Shader(model_vs.c_str(),model_fs.c_str());
     // Bind buffer
@@ -183,15 +181,6 @@ void Scene::DrawScene()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-}
-
-void Scene::generalTransform()
-{
-    mShader->use();
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
-    glm::mat4 view = camera->GetViewMatrix();
-    mShader->setMat4("projection", projection);
-    mShader->setMat4("view", view);
 }
 
 void Scene::initModel()

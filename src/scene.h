@@ -54,7 +54,6 @@ private:
     unsigned int VBO,tVBO;
     unsigned int VAO,tVAO,lightCubeVAO;
     std::vector<Model*> models_; // TODO: delete 
-    Shader* mShader;
     Shader* textShader;
     Camera* camera;
     glm::vec3 lightPos;
@@ -68,7 +67,6 @@ private:
     SkyBox * skybox_;
     Shader * cShader;
     Shader * modelShader_;
-    void generalTransform();
     void initScene();
     void initModel();
     void renderScene();
