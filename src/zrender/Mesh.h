@@ -12,6 +12,8 @@
 #include <vector>
 using namespace std;
 
+namespace zrender{
+
 #define MAX_BONE_INFLUENCE 4
 
 struct Vertex {
@@ -143,4 +145,9 @@ private:
         glBindVertexArray(0);
     }
 };
+
+
+
+};
+
 #endif

@@ -6,17 +6,20 @@
 #define SCENE_H
 
 #include "common.h"
-#include "Camera.h"
-#include "Shader.h"
+#include "zrender/Shader.h"
+#include "zrender/Camera.h"
+#include "zrender/Model.h"
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <ft2build.h>
 #include <vector>
 #include FT_FREETYPE_H
 #include "streamer.h"
-#include "Model.h"
+
 #include<chrono>
 #include<random>
+
+using namespace zrender;
 
 struct Character {
     GLuint TextureID;   // ID handle of the glyph texture

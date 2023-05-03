@@ -20,6 +20,8 @@
 #include <vector>
 using namespace std;
 
+namespace zrender{
+    
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 class Model 
@@ -200,4 +202,8 @@ private:
         return textures;
     }
 };
+
+};
+
+
 #endif

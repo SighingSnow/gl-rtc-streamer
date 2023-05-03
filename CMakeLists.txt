@@ -61,9 +61,11 @@ add_executable(
         ${CMAKE_CURRENT_SOURCE_DIR}/src/h264fileparser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stream.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/model.cpp
         ${GLAD_SRC}
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/zrender/Model.cpp
 )
+
 
 find_package(Threads REQUIRED)
 #target_include_directories(pic2video PRIVATE ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR})
