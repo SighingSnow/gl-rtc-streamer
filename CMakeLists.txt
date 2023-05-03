@@ -64,6 +64,8 @@ add_executable(
         ${GLAD_SRC}
 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/zrender/Model.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/zrender/skybox.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/zrender/zimage.cpp
 )
 
 

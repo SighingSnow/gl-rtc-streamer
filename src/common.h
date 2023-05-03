@@ -45,6 +45,15 @@ const std::string model_fs = "../src/Shaders/model.fs";
 
 const std::vector<std::string> gpu_str = {"cpu","nvenc","vaapi","qsv","videotoolbox"};
 
+const std::vector<std::string> skybox_faces = {
+"../resource/texture/skybox/right.jpg",
+"../resource/texture/skybox/left.jpg",
+"../resource/texture/skybox/up.jpg",
+"../resource/texture/skybox/down.jpg",
+"../resource/texture/skybox/back.jpg",
+"../resource/texture/skybox/front.jpg"
+};
+
 enum HW_ACCEL_TYPE {
         CPU,
         NVENC,
@@ -96,6 +105,5 @@ const float vertices[] = {
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
-
 
 #endif

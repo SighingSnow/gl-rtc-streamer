@@ -1,6 +1,5 @@
 #include "Model.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "zimage.h"
 
 namespace zrender{
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma)
@@ -11,9 +10,10 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-    if (data)
+    std::unique_ptr<ZImage> zimage(new ZImage());
+    zimage->load(filename.c_str());
+    int width = zimage->width(),height = zimage->height(),nrComponents = zimage->channels();
+    if (zimage->data())
     {
         GLenum format;
         if (nrComponents == 1)
@@ -24,7 +24,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
             format = GL_RGBA;
 
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, zimage->data());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -32,12 +32,8 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
+    } else {
+        std::cerr<<"failed to load texture\n";
     }
 
     return textureID;

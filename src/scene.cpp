@@ -121,6 +121,8 @@ void Scene::initScene()
     initBackground();
     // initGround();
     // initTrees();
+    skybox_ = new SkyBox(*camera);
+    skybox_->init();
     initModel();
 }
 
@@ -316,6 +318,7 @@ void Scene::renderScene()
     // renderGround();
     // renderTree();
     renderModel();
+    skybox_->draw();
 }
 void Scene::renderModel()
 {

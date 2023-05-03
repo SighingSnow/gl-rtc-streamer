@@ -9,6 +9,7 @@
 #include "zrender/Shader.h"
 #include "zrender/Camera.h"
 #include "zrender/Model.h"
+#include "zrender/skybox.h"
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <ft2build.h>
@@ -79,6 +80,7 @@ public:
     void clientMouseMoveCallback(double x,double y);
 // draw my scene.
 private:
+    SkyBox * skybox_;
     Shader * cShader;
     Shader * modelShader_;
     int tree_num = 3;
