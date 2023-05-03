@@ -121,9 +121,6 @@ void Scene::SetObjs()
 
 void Scene::initScene()
 {
-    initBackground();
-    // initGround();
-    // initTrees();
     initModel();
 }
 
@@ -197,110 +194,6 @@ void Scene::generalTransform()
     mShader->setMat4("view", view);
 }
 
-void Scene::initBackground()
-{
-    glm::vec3 lightColor = glm::vec3(1,0.8,0.6);
-	glm::vec3 diffuseColor = lightColor * glm::vec3(0.8f);
-	glm::vec3 ambientColor = diffuseColor * glm::vec3(1.0f);
-
-    mShader->use();
-    mShader->setVec3("lightPos",lightPos);
-    mShader->setVec3("viewPos", camera->Position);
-
-    mShader->setVec3("light.ambient",ambientColor);
-	mShader->setVec3("light.diffuse",diffuseColor);
-	mShader->setVec3("light.specular",1.0f,1.0f,1.0f);
-    mShader->setVec3("lightColor", 1.0f, 0.8f, 0.6f);
-    
-}
-
-void Scene::initGround()
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0,1.0);
-    ground_cubes = vector<MCube>(3);
-
-    glm::vec3 color_noise = glm::vec3(0.1f);
-    double i = 0.0;
-    for(auto & gc:ground_cubes){
-        gc.scale_ = glm::vec3(20,1.0f,20.0f);
-        gc.pos_ = glm::vec3(0.0f*i,-i*voxel_size*gc.scale_[1],0.0f);
-        gc.color_ = glm::vec3(0.8-i*0.1)*glm::vec3(1.0f,0.8f,0.6f) + 
-            color_noise*glm::vec3(dis(gen));
-        gc.angle_ = 60.0;
-        gc.rotate_axis = glm::vec3(0.0,1.0,0.0);
-        i = i+1;
-    }
-}
-
-void Scene::initTrees()
-{  
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    uniform_real_distribution<> dis(0.0,1.0);
-    uniform_real_distribution<> bdis(1.0,1.2);
-    uniform_real_distribution<> pos_dis(-0.04,0.04); 
-    // init tree size;
-    trees = std::vector<MTree>(tree_num);
-    auto initBranch = [&](MTree& mtree){
-        double index = 0;
-        glm::vec3 pos = mtree.pos_;
-        int one_b_height = bdis(gen);
-        std::vector<MCube>& b = mtree.branch_;
-        for(MCube & mc: b){
-            mc.scale_ = glm::vec3(0.4f,one_b_height,0.4f);
-            mc.pos_ = glm::vec3(pos[0],
-                pos[1]+index*voxel_size*mc.scale_[1],
-                pos[2]);
-            mc.color_ = glm::vec3(0.9);
-            mc.angle_ = 0.0f;
-            mc.rotate_axis = glm::vec3(0.0); 
-            index = index+1;
-        }
-        mtree.theight = 3*one_b_height*voxel_size;
-    };
-    
-    auto initLeaves = [&](glm::vec3 pos,double height,int radius,std::vector<MCube>& leaves){
-        double h,d,prob,r;
-        MCube leaf;
-        for(double i = -radius;i <= radius;i+=1){
-            for(double j = -radius;j <= radius;j+=1){
-                for(double k = -radius;k <= radius;k+=1){
-                    glm::vec3 f = glm::vec3(i/radius,j/radius,k/radius);
-                    h = 0.5 - std::max(double(f[1]),-0.5) * 0.5;
-                    d = sqrt(std::pow(f[0],2)+pow(f[2],2));
-                    prob = std::pow(std::max(0.0,double(1-d)),2) * h;
-                    prob += sin(f[0] * 5 + pos[0]) * 0.02;
-                    prob += sin(f[1] * 9 + pos[1]) * 0.01;
-                    prob += sin(f[2] * 10 + pos[2]) * 0.03;
-                    prob = prob < 0.1 ? 0.0:prob;
-                    r = dis(gen);
-                    if(r < prob){
-                        leaf.pos_ = pos + glm::vec3(i/radius/60.0,height+j/radius/100.0,k/radius/60.0);
-                        leaf.scale_ = glm::vec3(0.1,0.1,0.1);
-                        leaf.color_ = glm::vec3(1.0, 0.4, 0.1);
-                        leaves.emplace_back(leaf);
-                    }
-                }
-            }
-        }
-    };
-
-    for(auto& t:trees){
-        t.pos_ = glm::vec3(0.0,0.01,0.0);
-        t.pos_[0] = pos_dis(gen);
-        t.pos_[2] = pos_dis(gen);
-        t.branch_ = std::vector<MCube>(3);
-        // tmp
-        t.radius = 22;
-        initBranch(t);
-        initLeaves(t.pos_,t.theight,t.radius,t.leaves_);
-        //std::cout<<"leaves num"<<t.leaves_.size()<<std::endl;
-    }
-    return;
-}
-
 void Scene::initModel()
 {
     Model * model = new Model("../resource/mesh/mario/Mario.obj");
@@ -309,8 +202,6 @@ void Scene::initModel()
 
 void Scene::renderScene()
 {
-    // renderGround();
-    // renderTree();
     renderModel();
     skybox_->draw();
 }
@@ -327,64 +218,6 @@ void Scene::renderModel()
     for(auto & model_ : models_) {
         model_->Draw(*modelShader_);
     }
-}
-void Scene::renderGround()
-{
-    for(auto& gc:ground_cubes){
-        renderCube(gc.pos_,gc.scale_,gc.color_,
-            gc.angle_,gc.rotate_axis);
-    }
-}
-
-void Scene::renderTree()
-{
-    for(MTree & t : trees) {
-        for(MCube & m: t.branch_) {
-            renderCube(m.pos_,m.scale_,m.color_);
-        }
-        for(MCube & m: t.leaves_) {
-            renderCube(m.pos_,m.scale_,m.color_);
-        }
-    }
-}
-
-void Scene::renderCube(glm::vec3 pos,glm::vec3 scale,glm::vec3 color,
-    double angle ,glm::vec3 rotate_axis
-    )
-{
-    mShader->use();
-    mShader->setVec3("material.ambient", color);
-    mShader->setVec3("material.diffuse", color);
-    mShader->setVec3("material.specular", 0.4f, 0.4f, 0.4f); 
-    mShader->setFloat("material.shininess", 20.0f);
-    // transfom
-    glm::mat4 model = glm::mat4(1.0);
-    model = glm::translate(model,pos);
-    //model = glm::rotate(model,glm::radians(-120.0f),rotate_axis);
-    model = glm::scale(model,scale*glm::vec3(voxel_size));
-
-    mShader->setMat4("model",model);
-
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES,0,36);
-    return;
-}
-
-void Scene::renderLight()
-{
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 view = camera->GetViewMatrix();
-        
-    cShader->use();
-    cShader->setMat4("projection", projection);
-    cShader->setMat4("view", view);
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, lightPos);
-    model = glm::scale(model, glm::vec3(voxel_size*10)); // a smaller cube
-    cShader->setMat4("model", model);
-
-    glBindVertexArray(lightCubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void Scene::renderTime()

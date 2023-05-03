@@ -29,22 +29,6 @@ struct Character {
     GLuint Advance;    // Horizontal offset to advance to next glyph
 };
 
-struct MCube {
-    glm::vec3 pos_; // relevant to (0,0,0)
-    glm::vec3 scale_;
-    double angle_;
-    glm::vec3 rotate_axis;
-    glm::vec3 color_;
-};
-
-struct MTree {
-    int radius = 10;
-    double theight;
-    glm::vec3 pos_;
-    std::vector<MCube> branch_;
-    std::vector<MCube> leaves_;
-};
-
 class Scene {
 public:
     Scene();
@@ -84,27 +68,12 @@ private:
     SkyBox * skybox_;
     Shader * cShader;
     Shader * modelShader_;
-    int tree_num = 3;
-    double voxel_size = 0.006;
-    double base_height = 0.0f;
-    std::vector<MCube> ground_cubes;
-    std::vector<MTree> trees;
     void generalTransform();
     void initScene();
-    void initBackground();
-    void initGround();
-    void initTrees();
     void initModel();
     void renderScene();
-    void renderGround();
-    void renderTree();
     void renderTime();
     void renderModel();
-    void renderCube(glm::vec3 pos,glm::vec3 scale,glm::vec3 color,
-        double angle = 0.0f,
-        glm::vec3 rotate_axis =glm::vec3(0.0f,0.0f,0.0f)
-        );
-    void renderLight();
 };
 
 
