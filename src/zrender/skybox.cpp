@@ -65,15 +65,16 @@ void SkyBox::draw() const {
         return;
     }
     //
+    glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
     shader_->use();
-    glm::mat4 projection = glm::perspective(glm::radians(camera_.Zoom), (float)screen_width / (float)screen_height, 0.1f, 400.0f);
-    glm::mat4 view = camera_.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera_.Zoom), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
+    glm::mat4 view = glm::mat4(glm::mat3(camera_.GetViewMatrix()));
     shader_->setMat4("view",view);
     shader_->setMat4("projection",projection);
+    glBindVertexArray(vao_);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP,skyboxTexture);
-    glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES,0,36);
     glBindVertexArray(0);
     glDepthFunc(GL_LESS);
@@ -91,10 +92,9 @@ void SkyBox::initBuffer() {
     glGenBuffers(1,&vbo_);
     glBindVertexArray(vao_);
     glBindBuffer(GL_ARRAY_BUFFER,vbo_);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(skyboxVerts),skyboxVerts,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(skyboxVerts),&skyboxVerts,GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
-    glBindVertexArray(0);
     return;
 }
 

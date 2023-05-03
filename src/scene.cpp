@@ -24,6 +24,7 @@ Scene::Scene()
     VBO = 0;
     mShader = nullptr;
     camera = new Camera(glm::vec3(1.0,2.18f,8.91f));
+    //camera = new Camera(glm::vec3(0.0f,0.0f,3.0f));
     lightPos = glm::vec3(1.0f, 2.0f, 1.0f);
     prev_time = 0.0;
     frame_count = 0;
@@ -78,6 +79,8 @@ void Scene::SetObjs()
     // Compile shaders
     //lightShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
 	//cShader = new Shader(cube_vs.c_str(),cube_fs.c_str());
+    skybox_ = new SkyBox(*camera);
+    skybox_->init();
     mShader = new Shader(mcube_vs.c_str(),mcube_fs.c_str());
     textShader = new Shader(text_vs.c_str(),text_fs.c_str());
     modelShader_ = new Shader(model_vs.c_str(),model_fs.c_str());
@@ -121,8 +124,6 @@ void Scene::initScene()
     initBackground();
     // initGround();
     // initTrees();
-    skybox_ = new SkyBox(*camera);
-    skybox_->init();
     initModel();
 }
 
@@ -144,9 +145,6 @@ void Scene::DrawScene()
     int width = 0,height = 0;
 
     glEnable(GL_DEPTH_TEST);
-
-    glfwGetWindowSize(window,&width,&height);
-    
     time_t now = time(NULL);
 
     initScene();
@@ -173,8 +171,8 @@ void Scene::DrawScene()
         // ------
         glClearColor(0.8f, 0.7f, 0.7f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        generalTransform(); // perspective and view matrix
+        glfwGetWindowSize(window,&mWidth_,&mHeight_);
+        // generalTransform(); // perspective and view matrix
         renderScene();
         //renderTime();
 
@@ -193,14 +191,10 @@ void Scene::DrawScene()
 void Scene::generalTransform()
 {
     mShader->use();
-    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)screen_width / (float)screen_height, 0.1f, 400.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
     mShader->setMat4("projection", projection);
     mShader->setMat4("view", view);
-
-    modelShader_->use();
-    modelShader_->setMat4("projection",projection);
-    modelShader_->setMat4("view",view);
 }
 
 void Scene::initBackground()
@@ -323,7 +317,11 @@ void Scene::renderScene()
 void Scene::renderModel()
 {
     modelShader_->use();
+    glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)mWidth_ / (float)mHeight_, 0.1f, 100.0f);
+    glm::mat4 view = camera->GetViewMatrix();
     glm::mat4 model = glm::mat4(1.0f);
+    modelShader_->setMat4("view",view);
+    modelShader_->setMat4("projection",projection);
     model = glm::scale(model,glm::vec3(0.01f));
     modelShader_->setMat4("model",model);
     for(auto & model_ : models_) {

@@ -80,6 +80,7 @@ public:
     void clientMouseMoveCallback(double x,double y);
 // draw my scene.
 private:
+    int mWidth_,mHeight_;
     SkyBox * skybox_;
     Shader * cShader;
     Shader * modelShader_;
