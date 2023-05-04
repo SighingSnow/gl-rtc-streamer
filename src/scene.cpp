@@ -23,7 +23,7 @@ Scene::Scene()
     VAO = 0;
     VBO = 0;
     //camera = new Camera(glm::vec3(1.0,2.18f,8.91f));
-    camera = new Camera(glm::vec3(0.0f,0.0f,3.0f));
+    camera = new Camera(glm::vec3(0.0f,0.1f,6.0f));
     prev_time = 0.0;
     frame_count = 0;
     delta_t = 0.0;
@@ -182,7 +182,7 @@ void Scene::initModel()
 void Scene::renderScene()
 {
     renderModel();
-    skybox_->draw();
+    //skybox_->draw();
 }
 void Scene::renderModel()
 {
@@ -192,7 +192,7 @@ void Scene::renderModel()
     glm::mat4 model = glm::mat4(1.0f);
     modelShader_->setMat4("view",view);
     modelShader_->setMat4("projection",projection);
-    model = glm::scale(model,glm::vec3(0.001f));
+    model = glm::scale(model,glm::vec3(0.005f));
     modelShader_->setMat4("model",model);
     for(auto & model_ : models_) {
         model_->Draw(*modelShader_);
