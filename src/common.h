@@ -45,23 +45,23 @@ const std::string model_fs = "../src/Shaders/model.fs";
 
 const std::vector<std::string> gpu_str = {"cpu","nvenc","vaapi","qsv","videotoolbox"};
 
-const std::vector<std::string> skybox_faces = {
-"../resource/texture/skybox/right.jpg",
-"../resource/texture/skybox/left.jpg",
-"../resource/texture/skybox/top.jpg",
-"../resource/texture/skybox/bottom.jpg",
-"../resource/texture/skybox/front.jpg",
-"../resource/texture/skybox/back.jpg"
-};
-
 // const std::vector<std::string> skybox_faces = {
-// "../resource/texture/skybox/posx.jpg",
-// "../resource/texture/skybox/negx.jpg",
-// "../resource/texture/skybox/posy.jpg",
-// "../resource/texture/skybox/negy.jpg",
-// "../resource/texture/skybox/posz.jpg",
-// "../resource/texture/skybox/negz.jpg"
+// "../resource/texture/skybox/right.jpg",
+// "../resource/texture/skybox/left.jpg",
+// "../resource/texture/skybox/top.jpg",
+// "../resource/texture/skybox/bottom.jpg",
+// "../resource/texture/skybox/front.jpg",
+// "../resource/texture/skybox/back.jpg"
 // };
+
+const std::vector<std::string> skybox_faces = {
+"../resource/texture/skybox/posx.jpg",
+"../resource/texture/skybox/negx.jpg",
+"../resource/texture/skybox/posy.jpg",
+"../resource/texture/skybox/negy.jpg",
+"../resource/texture/skybox/posz.jpg",
+"../resource/texture/skybox/negz.jpg"
+};
 
 
 enum HW_ACCEL_TYPE {

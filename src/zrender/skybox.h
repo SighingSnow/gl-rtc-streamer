@@ -7,14 +7,14 @@
 
 #include <vector>
 #include <glm/glm.hpp>
-
+#include <glm/gtc/matrix_transform.hpp>
 namespace zrender{
 
 class SkyBox : public ZObject
 {
 public:
     SkyBox(Camera & camera): camera_(camera){
-        loadCubeMap(skybox_faces);
+        skyboxTextureID = loadCubeMap(skybox_faces);
     };
     ~SkyBox();
     void init() override;
@@ -24,8 +24,8 @@ protected:
     void initBuffer() override;
 private:
     Camera & camera_;
-    unsigned int skyboxTexture;
-    void loadCubeMap(std::vector<std::string> faces);
+    unsigned int skyboxTextureID;
+    int loadCubeMap(std::vector<std::string> faces);
 };
 
 
