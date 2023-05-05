@@ -46,8 +46,9 @@ Lots of work still need to be done.
 - [x] Enable browser control.
 - [x] Accelerate encode.(partial)
 - [ ] Resources(texture & mesh) pre-forward
-- [ ] Integrate render on client and server
+- [x] Integrate render on client and server
 - [ ] Adjust bitrate dynamicaly according to net status
+- [ ] Test video codec delay. 
 
 
 **Please note: the repo's license is MIT, but the 3rd_party/librtc is GPL.**

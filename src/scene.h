@@ -60,6 +60,7 @@ private:
 public:
     void clientKeyboardCallback(char c);
     void clientMouseMoveCallback(double x,double y);
+    void clientMouseMoveCallbackOffset(double x,double y);
 // draw my scene.
 private:
     int mWidth_,mHeight_;

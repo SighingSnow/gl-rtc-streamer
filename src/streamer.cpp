@@ -70,6 +70,6 @@ void Streamer::initRtc(std::string ip_addr)
     rtc_publisher->setUp();
     // bind callback
     func_keyboard = std::bind(&Scene::clientKeyboardCallback,scene_,std::placeholders::_1);
-    func_mousemove = std::bind(&Scene::clientMouseMoveCallback,scene_,std::placeholders::_1,std::placeholders::_2);
+    func_mousemove = std::bind(&Scene::clientMouseMoveCallbackOffset,scene_,std::placeholders::_1,std::placeholders::_2);
     rtc_publisher->setInputCallBack(&func_keyboard,&func_mousemove);
 }

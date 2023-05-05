@@ -353,6 +353,11 @@ void Scene::clientMouseMoveCallback(double x,double y)
     this->get_camera()->ProcessMouseMovement(xoffset, yoffset);
 }
 
+void Scene::clientMouseMoveCallbackOffset(double x,double y)
+{
+    this->get_camera()->ProcessMouseMovement(x, y);
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
